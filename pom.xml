@@ -58,22 +58,16 @@
   </properties>
 
   <dependencies>
-    <!-- regular dependencies -->
-    <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-core</artifactId>
-      <version>1.10.13</version>
-    </dependency>
-    <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-ec2</artifactId>
-      <version>1.10.13</version>
-    </dependency>
     <!-- plugin dependencies -->
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>credentials</artifactId>
       <version>1.22</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>aws-java-sdk</artifactId>
+      <version>1.10.16</version>
     </dependency>
     <!-- jenkins dependencies -->
     <!-- test dependencies -->
