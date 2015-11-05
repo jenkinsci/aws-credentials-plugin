@@ -48,7 +48,9 @@ import org.kohsuke.stapler.QueryParameter;
 
 import java.net.HttpURLConnection;
 
-public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials implements AmazonWebServicesCredentials {
+// Implement AmazonWebServicesCredentials for backward compatibility of plugins that consume AmazonWebServicesCredentials
+// And did not yet migrate to AWSCredentials
+public class AWSCredentialsImpl extends BaseAWSCredentials implements AmazonWebServicesCredentials, com.cloudbees.jenkins.plugins.awscredentials.AWSCredentials {
 
     private final String accessKey;
 
