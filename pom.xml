@@ -37,7 +37,7 @@
   <packaging>hpi</packaging>
 
   <name>CloudBees Amazon Web Services Credentials Plugin</name>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/CloudBees+Amazon+Web+Services+Credentials+Plugin</url>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/CloudBees+AWS+Credentials+Plugin</url>
 
   <scm>
     <connection>scm:git:git@github.com:jenkinsci/cloudbees-aws-credentials-plugin.git</connection>
