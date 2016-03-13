@@ -26,11 +26,15 @@
 package com.cloudbees.jenkins.plugins.awscredentials;
 
 import com.amazonaws.auth.AWSCredentials;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -48,21 +52,33 @@ import java.util.Set;
  */
 public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebServicesCredentials> {
 
+    public final static String DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME = "AWS_ACCESS_KEY_ID";
+    private final static String DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME = "AWS_SECRET_ACCESS_KEY";
 
+    @NonNull
     private final String accessKeyVariable;
+    @NonNull
     private final String secretKeyVariable;
 
+    /**
+     *
+     * @param accessKeyVariable if {@code null}, {@value DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME} will be used.
+     * @param secretKeyVariable if {@code null}, {@value DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME} will be used.
+     * @param credentialsId
+     */
     @DataBoundConstructor
-    public AmazonWebServicesCredentialsBinding(String accessKeyVariable, String secretKeyVariable, String credentialsId) {
+    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId) {
         super(credentialsId);
-        this.accessKeyVariable = accessKeyVariable;
-        this.secretKeyVariable = secretKeyVariable;
+        this.accessKeyVariable = StringUtils.defaultIfBlank(accessKeyVariable, DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME);
+        this.secretKeyVariable = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME);
     }
 
+    @NonNull
     public String getAccessKeyVariable() {
         return accessKeyVariable;
     }
 
+    @NonNull
     public String getSecretKeyVariable() {
         return secretKeyVariable;
     }
