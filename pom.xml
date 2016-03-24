@@ -73,7 +73,6 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>credentials-binding</artifactId>
       <version>1.7</version>
-      <optional>true</optional>
     </dependency>
     <!-- jenkins dependencies -->
     <!-- test dependencies -->
