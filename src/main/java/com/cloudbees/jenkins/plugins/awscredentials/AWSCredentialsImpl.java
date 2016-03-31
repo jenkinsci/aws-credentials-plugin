@@ -27,6 +27,7 @@ package com.cloudbees.jenkins.plugins.awscredentials;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Region;
@@ -39,9 +40,12 @@ import com.cloudbees.plugins.credentials.CredentialsScope;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.ProxyConfiguration;
 import hudson.Util;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
+import jenkins.model.Jenkins;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -101,8 +105,20 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             if (StringUtils.isBlank(value)) {
                 return FormValidation.error(Messages.AWSCredentialsImpl_SpecifySecretAccessKey());
             }
-            AmazonEC2 ec2 =
-                    new AmazonEC2Client(new BasicAWSCredentials(accessKey, Secret.fromString(value).getPlainText()));
+            
+            ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+            ClientConfiguration clientConfiguration = new ClientConfiguration();            
+            if(proxy != null) {
+            	clientConfiguration.setProxyHost(proxy.name);
+            	clientConfiguration.setProxyPort(proxy.port);
+            	clientConfiguration.setProxyUsername(proxy.getUserName());
+            	clientConfiguration.setProxyPassword(proxy.getPassword());
+            }
+            
+            AmazonEC2 ec2 = new AmazonEC2Client(
+            		new BasicAWSCredentials(accessKey, Secret.fromString(value).getPlainText()),
+            		clientConfiguration);
+            
             // TODO better/smarter validation of the credentials instead of verifying the permission on EC2.READ in us-east-1
             String region = "us-east-1";
             try {
