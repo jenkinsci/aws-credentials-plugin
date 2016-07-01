@@ -106,7 +106,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                 return FormValidation.error(Messages.AWSCredentialsImpl_SpecifySecretAccessKey());
             }
             
-            ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+            ProxyConfiguration proxy = Jenkins.getActiveInstance().proxy;
             ClientConfiguration clientConfiguration = new ClientConfiguration();            
             if(proxy != null) {
             	clientConfiguration.setProxyHost(proxy.name);
