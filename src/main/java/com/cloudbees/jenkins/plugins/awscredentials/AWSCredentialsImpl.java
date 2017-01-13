@@ -54,7 +54,9 @@ import java.net.HttpURLConnection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials implements AmazonWebServicesCredentials {
+// Implement AmazonWebServicesCredentials for backward compatibility of plugins that consume AmazonWebServicesCredentials
+// And did not yet migrate to AWSCredentials
+public class AWSCredentialsImpl extends BaseAWSCredentials implements AmazonWebServicesCredentials, com.cloudbees.jenkins.plugins.awscredentials.AWSCredentials {
 
     private static final Logger LOGGER = Logger.getLogger(BaseAmazonWebServicesCredentials.class.getName());
 

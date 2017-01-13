@@ -25,19 +25,17 @@
 
 package com.cloudbees.jenkins.plugins.awscredentials;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.cloudbees.plugins.credentials.Credentials;
-import com.cloudbees.plugins.credentials.CredentialsNameProvider;
-import com.cloudbees.plugins.credentials.NameWith;
-import com.cloudbees.plugins.credentials.common.StandardCredentials;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import hudson.Util;
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 /**
- * A {@link AWSCredentialsProvider} that is bound to the Jenkins {@link Credentials} api.
- *
- * @deprecated since v1.11. Use {@link AWSCredentials}
  */
-public interface AmazonWebServicesCredentials extends AWSCredentials {
-
+public abstract class BaseAWSCredentials extends BaseStandardCredentials
+        implements AWSCredentials {
+    public BaseAWSCredentials(
+            @CheckForNull CredentialsScope scope,
+            @CheckForNull String id, @CheckForNull String description) {
+        super(scope, id, description);
+    }
 }

@@ -30,10 +30,10 @@ import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 /**
- * @author stephenc
- * @since 08/03/2013 13:06
+ * @deprecated since 1.11. Use {@link BaseAWSCredentials}
  */
-public abstract class BaseAmazonWebServicesCredentials extends BaseStandardCredentials
+@Deprecated
+public abstract class BaseAmazonWebServicesCredentials extends BaseAWSCredentials
         implements AmazonWebServicesCredentials {
     public BaseAmazonWebServicesCredentials(
             @CheckForNull CredentialsScope scope,
