@@ -13,3 +13,6 @@ work
 .project
 build
 .fbExcludeFilterFile
+
+# files osx plops down sometimes
+.DS_Store
