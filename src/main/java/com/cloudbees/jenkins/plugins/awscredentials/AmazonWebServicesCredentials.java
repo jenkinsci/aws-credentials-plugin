@@ -25,6 +25,7 @@
 
 package com.cloudbees.jenkins.plugins.awscredentials;
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsNameProvider;
@@ -39,6 +40,8 @@ import hudson.Util;
 @NameWith(value = AmazonWebServicesCredentials.NameProvider.class, priority = 1)
 public interface AmazonWebServicesCredentials extends StandardCredentials, AWSCredentialsProvider {
     String getDisplayName();
+
+    AWSCredentials getCredentials(String mfaToken);
 
     /**
      * Our name provider.
