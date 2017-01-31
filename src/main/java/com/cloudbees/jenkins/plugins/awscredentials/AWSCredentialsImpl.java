@@ -56,6 +56,8 @@ import java.util.logging.Logger;
 
 public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials implements AmazonWebServicesCredentials {
 
+    private static final long serialVersionUID = -3167989896315282034L;
+
     private static final Logger LOGGER = Logger.getLogger(BaseAmazonWebServicesCredentials.class.getName());
 
     public static final int STS_CREDENTIALS_DURATION_SECONDS = 3600;
