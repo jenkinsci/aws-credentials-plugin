@@ -68,6 +68,14 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
     private final String iamRoleArn;
     private final String iamMfaSerialNumber;
 
+    /**
+     * Old data bound constructor. It is maintained to keep binary compatibility with clients that were using it directly.
+     */
+    public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
+                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description) {
+        this(scope, id, accessKey, secretKey, description, null, null);
+    }
+
     @DataBoundConstructor
     public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
                               @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description,
