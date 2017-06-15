@@ -39,6 +39,9 @@ import hudson.Util;
  */
 @NameWith(value = AmazonWebServicesCredentials.NameProvider.class, priority = 1)
 public interface AmazonWebServicesCredentials extends StandardCredentials, AWSCredentialsProvider {
+    /** Serial UID from 1.16. */
+    long serialVersionUID = -8931505925778535681L;
+
     String getDisplayName();
 
     AWSCredentials getCredentials(String mfaToken);
