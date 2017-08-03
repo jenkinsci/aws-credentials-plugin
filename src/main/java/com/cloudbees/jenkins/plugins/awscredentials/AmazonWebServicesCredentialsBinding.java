@@ -26,6 +26,9 @@
 package com.cloudbees.jenkins.plugins.awscredentials;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSSessionCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
+
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -54,6 +57,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
     public final static String DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME = "AWS_ACCESS_KEY_ID";
     private final static String DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME = "AWS_SECRET_ACCESS_KEY";
+    private final static String SESSION_TOKEN_VARIABLE_NAME = "AWS_SESSION_TOKEN";
 
     @NonNull
     private final String accessKeyVariable;
@@ -94,6 +98,11 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
         Map<String,String> m = new HashMap<String,String>();
         m.put(accessKeyVariable, credentials.getAWSAccessKeyId());
         m.put(secretKeyVariable, credentials.getAWSSecretKey());
+
+        // If role has been assumed, STS requires AWS_SESSION_TOKEN variable set too.
+        if(credentials instanceof AWSSessionCredentials) {
+            m.put(SESSION_TOKEN_VARIABLE_NAME, ((AWSSessionCredentials) credentials).getSessionToken());
+        }
         return new MultiEnvironment(m);
     }
 

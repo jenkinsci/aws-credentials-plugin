@@ -31,6 +31,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
@@ -113,6 +114,11 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
         if (StringUtils.isBlank(iamRoleArn)) {
             return initialCredentials;
         } else {
+            // Handle the case of delegation to instance profile
+            if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText()) ) {
+                initialCredentials = (new InstanceProfileCredentialsProvider()).getCredentials();
+            }
+
             AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn);
 
             AssumeRoleResult assumeResult = new AWSSecurityTokenServiceClient(initialCredentials).assumeRole(assumeRequest);
