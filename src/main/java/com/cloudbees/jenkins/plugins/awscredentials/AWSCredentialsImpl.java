@@ -32,6 +32,8 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
@@ -65,6 +67,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
     public static final int STS_CREDENTIALS_DURATION_SECONDS = 3600;
     private final String accessKey;
+    private final String awsRegion;
 
     private final Secret secretKey;
 
@@ -75,17 +78,18 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
      * Old data bound constructor. It is maintained to keep binary compatibility with clients that were using it directly.
      */
     public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
-                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description) {
-        this(scope, id, accessKey, secretKey, description, null, null);
+                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String awsRegion, @CheckForNull String description) {
+        this(scope, id, accessKey, secretKey, awsRegion, description, null, null);
     }
 
     @DataBoundConstructor
     public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
-                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description,
+                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String awsRegion, @CheckForNull String description,
                               @CheckForNull String iamRoleArn, @CheckForNull String iamMfaSerialNumber) {
         super(scope, id, description);
         this.accessKey = Util.fixNull(accessKey);
         this.secretKey = Secret.fromString(secretKey);
+        this.awsRegion = Util.fixNull(awsRegion);
         this.iamRoleArn = Util.fixNull(iamRoleArn);
         this.iamMfaSerialNumber = Util.fixNull(iamMfaSerialNumber);
     }
@@ -96,6 +100,10 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
     public Secret getSecretKey() {
         return secretKey;
+    }
+
+    public String getAwsRegion() {
+        return awsRegion;
     }
 
     public String getIamRoleArn() {
@@ -177,6 +185,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
         }
 
         public FormValidation doCheckSecretKey(@QueryParameter("accessKey") final String accessKey,
+                                               @QueryParameter("awsRegion") final String awsRegion,
                                                @QueryParameter("iamRoleArn") final String iamRoleArn,
                                                @QueryParameter("iamMfaSerialNumber") final String iamMfaSerialNumber,
                                                @QueryParameter("iamMfaToken") final String iamMfaToken,
@@ -189,6 +198,9 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             }
             if (StringUtils.isBlank(secretKey)) {
                 return FormValidation.error(Messages.AWSCredentialsImpl_SpecifySecretAccessKey());
+            }
+            if (StringUtils.isBlank(awsRegion)) {
+                return FormValidation.error(Messages.AWSCredentialsImpl_SpecifyAWSRegion());
             }
 
             ProxyConfiguration proxy = Jenkins.getActiveInstance().proxy;
@@ -231,9 +243,10 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             }
 
             AmazonEC2 ec2 = new AmazonEC2Client(awsCredentials,clientConfiguration);
+            final Region region = Region.getRegion(Regions.fromName(awsRegion));
+            ec2.setRegion(region);
 
-            // TODO better/smarter validation of the credentials instead of verifying the permission on EC2.READ in us-east-1
-            String region = "us-east-1";
+            // TODO better/smarter validation of the credentials instead of verifying the permission on EC2.READ
             try {
                 DescribeAvailabilityZonesResult zonesResult = ec2.describeAvailabilityZones();
                 return FormValidation
@@ -243,7 +256,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                 if (HttpURLConnection.HTTP_UNAUTHORIZED == e.getStatusCode()) {
                     return FormValidation.warning(Messages.AWSCredentialsImpl_CredentialsInValid(e.getMessage()));
                 } else if (HttpURLConnection.HTTP_FORBIDDEN == e.getStatusCode()) {
-                    return FormValidation.ok(Messages.AWSCredentialsImpl_CredentialsValidWithoutAccessToAwsServiceInZone(e.getServiceName(), region, e.getErrorMessage() + " (" + e.getErrorCode() + ")"));
+                    return FormValidation.ok(Messages.AWSCredentialsImpl_CredentialsValidWithoutAccessToAwsServiceInZone(e.getServiceName(), awsRegion, e.getErrorMessage() + " (" + e.getErrorCode() + ")"));
                 } else {
                     return FormValidation.error(e.getMessage());
                 }
