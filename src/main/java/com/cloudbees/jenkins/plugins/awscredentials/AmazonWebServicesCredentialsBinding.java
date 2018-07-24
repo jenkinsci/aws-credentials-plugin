@@ -32,6 +32,7 @@ import com.amazonaws.auth.BasicSessionCredentials;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -94,10 +95,12 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
     @Override
     public MultiEnvironment bind(@Nonnull Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
-        AWSCredentials credentials = getCredentials(build).getCredentials();
+        EnvVars buildEnvs = build.getEnvironment(listener);
+        AmazonWebServicesCredentials awsServicecredentials = getCredentials(build);
+        AWSCredentials credentials = awsServicecredentials.getCredentialsWithRoleSessionName(buildEnvs.get("BUILD_USER_EMAIL"));
         Map<String,String> m = new HashMap<String,String>();
-        m.put(accessKeyVariable, credentials.getAWSAccessKeyId());
-        m.put(secretKeyVariable, credentials.getAWSSecretKey());
+        m.put(this.accessKeyVariable, credentials.getAWSAccessKeyId());
+        m.put(this.secretKeyVariable, credentials.getAWSSecretKey());
 
         // If role has been assumed, STS requires AWS_SESSION_TOKEN variable set too.
         if(credentials instanceof AWSSessionCredentials) {
