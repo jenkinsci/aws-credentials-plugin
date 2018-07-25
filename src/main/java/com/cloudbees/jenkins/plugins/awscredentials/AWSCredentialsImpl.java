@@ -132,25 +132,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
 
     public AWSCredentials getCredentials() {
-        AWSCredentials initialCredentials = new BasicAWSCredentials(accessKey, secretKey.getPlainText());
-
-        if (StringUtils.isBlank(iamRoleArn)) {
-            return initialCredentials;
-        } else {
-            // Handle the case of delegation to instance profile
-            if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText()) ) {
-                initialCredentials = (new InstanceProfileCredentialsProvider()).getCredentials();
-            }
-
-            AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn, null);
-
-            AssumeRoleResult assumeResult = new AWSSecurityTokenServiceClient(initialCredentials).assumeRole(assumeRequest);
-
-            return new BasicSessionCredentials(
-                    assumeResult.getCredentials().getAccessKeyId(),
-                    assumeResult.getCredentials().getSecretAccessKey(),
-                    assumeResult.getCredentials().getSessionToken());
-        }
+        return this.getCredentialsWithRoleSessionName(null);
     }
 
     public AWSCredentials getCredentials(String mfaToken) {
