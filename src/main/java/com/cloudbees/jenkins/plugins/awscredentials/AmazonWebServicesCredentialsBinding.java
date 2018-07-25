@@ -38,6 +38,8 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import jenkins.model.Jenkins;
+
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
@@ -124,6 +126,9 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
         @Override public String getDisplayName() {
             return "AWS access key and secret";
+        }
+        public String defaultRoleSessionName() {
+            return Jenkins.getActiveInstance().getDisplayName();
         }
     }
 
