@@ -64,6 +64,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     private final String accessKeyVariable;
     @NonNull
     private final String secretKeyVariable;
+    private final String buildUserEmail;
 
     /**
      *
@@ -72,10 +73,11 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
      * @param credentialsId
      */
     @DataBoundConstructor
-    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId) {
+    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId, String buildUserEmail) {
         super(credentialsId);
         this.accessKeyVariable = StringUtils.defaultIfBlank(accessKeyVariable, DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME);
         this.secretKeyVariable = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME);
+        this.buildUserEmail = buildUserEmail;
     }
 
     @NonNull
@@ -95,9 +97,8 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
     @Override
     public MultiEnvironment bind(@Nonnull Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
-        EnvVars buildEnvs = build.getEnvironment(listener);
         AmazonWebServicesCredentials awsServicecredentials = getCredentials(build);
-        AWSCredentials credentials = awsServicecredentials.getCredentialsWithRoleSessionName(buildEnvs.get("BUILD_USER_EMAIL"));
+        AWSCredentials credentials = awsServicecredentials.getCredentialsWithRoleSessionName(this.buildUserEmail);
         Map<String,String> m = new HashMap<String,String>();
         m.put(this.accessKeyVariable, credentials.getAWSAccessKeyId());
         m.put(this.secretKeyVariable, credentials.getAWSSecretKey());
