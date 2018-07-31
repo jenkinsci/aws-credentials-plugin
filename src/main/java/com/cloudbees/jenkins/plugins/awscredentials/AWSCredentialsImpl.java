@@ -66,30 +66,33 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
     private static final Logger LOGGER = Logger.getLogger(BaseAmazonWebServicesCredentials.class.getName());
 
     public static final int STS_CREDENTIALS_DURATION_SECONDS = 3600;
+
     private final String accessKey;
 
     private final Secret secretKey;
 
     private final String iamRoleArn;
     private final String iamMfaSerialNumber;
+    private final Integer stsTokenDuration;
 
     /**
      * Old data bound constructor. It is maintained to keep binary compatibility with clients that were using it directly.
      */
     public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
                               @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description) {
-        this(scope, id, accessKey, secretKey, description, null, null);
+        this(scope, id, accessKey, secretKey, description, null, null, null);
     }
 
     @DataBoundConstructor
     public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
                               @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description,
-                              @CheckForNull String iamRoleArn, @CheckForNull String iamMfaSerialNumber) {
+                              @CheckForNull String iamRoleArn, @CheckForNull String iamMfaSerialNumber, @CheckForNull Integer stsTokenDuration) {
         super(scope, id, description);
         this.accessKey = Util.fixNull(accessKey);
         this.secretKey = Secret.fromString(secretKey);
         this.iamRoleArn = Util.fixNull(iamRoleArn);
         this.iamMfaSerialNumber = Util.fixNull(iamMfaSerialNumber);
+        this.stsTokenDuration = stsTokenDuration == null ? STS_CREDENTIALS_DURATION_SECONDS : stsTokenDuration;
     }
 
     public String getAccessKey() {
@@ -106,6 +109,10 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
     public String getIamMfaSerialNumber() {
         return iamMfaSerialNumber;
+    }
+
+    public Integer getStsTokenDuration() {
+        return stsTokenDuration;
     }
 
     public boolean requiresToken() {
@@ -160,7 +167,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
         AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn)
                 .withSerialNumber(iamMfaSerialNumber)
-                .withTokenCode(mfaToken);
+                .withTokenCode(mfaToken)
+                .withDurationSeconds(stsTokenDuration);
 
         AssumeRoleResult assumeResult = new AWSSecurityTokenServiceClient(initialCredentials).assumeRole(assumeRequest);
 
@@ -184,7 +192,6 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
     private static AssumeRoleRequest createAssumeRoleRequest(String iamRoleArn) {
         return new AssumeRoleRequest()
                 .withRoleArn(iamRoleArn)
-                .withDurationSeconds(STS_CREDENTIALS_DURATION_SECONDS)
                 .withRoleSessionName(Jenkins.getActiveInstance().getDisplayName());
     }
 
@@ -196,10 +203,15 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             return Messages.AWSCredentialsImpl_DisplayName();
         }
 
+        public Integer defaultStsTokenDuration() {
+            return STS_CREDENTIALS_DURATION_SECONDS;
+        }
+
         public FormValidation doCheckSecretKey(@QueryParameter("accessKey") final String accessKey,
                                                @QueryParameter("iamRoleArn") final String iamRoleArn,
                                                @QueryParameter("iamMfaSerialNumber") final String iamMfaSerialNumber,
                                                @QueryParameter("iamMfaToken") final String iamMfaToken,
+                                               @QueryParameter("stsTokenDuration") final Integer stsTokenDuration,
                                                @QueryParameter final String secretKey) {
             if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey)) {
                 return FormValidation.ok();
@@ -225,7 +237,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             // If iamRoleArn is specified, swap out the credentials.
             if (!StringUtils.isBlank(iamRoleArn)) {
 
-                AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn);
+                AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn)
+                        .withDurationSeconds(stsTokenDuration);
 
                 if(!StringUtils.isBlank(iamMfaSerialNumber)) {
                     if(StringUtils.isBlank(iamMfaToken)) {
@@ -243,9 +256,10 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                             assumeResult.getCredentials().getAccessKeyId(),
                             assumeResult.getCredentials().getSecretAccessKey(),
                             assumeResult.getCredentials().getSessionToken());
+                    LOGGER.log(Level.INFO, "Assume role result: " + assumeResult.toString());
                 } catch(AmazonServiceException e) {
                     LOGGER.log(Level.WARNING, "Unable to assume role [" + iamRoleArn + "] with request [" + assumeRequest + "]", e);
-                    return FormValidation.error(Messages.AWSCredentialsImpl_NotAbleToAssumeRole());
+                    return FormValidation.error(Messages.AWSCredentialsImpl_NotAbleToAssumeRole() + " Check the Jenkins log for more details");
                 }
 
             }
