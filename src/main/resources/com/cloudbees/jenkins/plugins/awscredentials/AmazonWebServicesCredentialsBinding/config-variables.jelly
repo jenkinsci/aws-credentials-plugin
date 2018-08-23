@@ -33,4 +33,7 @@ THE SOFTWARE.
   <f:entry title="${%Role Session Name}" field="roleSessionName">
     <f:textbox default="${descriptor.defaultRoleSessionName()}"/>
   </f:entry>
+  <f:entry title="${%Role Session Duration Seconds}" field="roleSessionDurationSeconds">
+    <f:textbox default="${descriptor.defaultRoleSessionDurationSeconds()}"/>
+  </f:entry>
 </j:jelly>

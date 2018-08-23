@@ -108,7 +108,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
         return !StringUtils.isBlank(iamMfaSerialNumber);
     }
     
-    public AWSCredentials getCredentialsWithRoleSessionName(String roleSessioName) {
+    public AWSCredentials getCredentialsWithReqParams(String roleSessioName, int roleSessionDurationSeconds) {
         AWSCredentials initialCredentials = new BasicAWSCredentials(accessKey, secretKey.getPlainText());
 
         if (StringUtils.isBlank(iamRoleArn)) {
@@ -119,7 +119,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                 initialCredentials = (new InstanceProfileCredentialsProvider()).getCredentials();
             }
 
-            AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn, roleSessioName);
+            AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn, roleSessioName, roleSessionDurationSeconds);
 
             AssumeRoleResult assumeResult = new AWSSecurityTokenServiceClient(initialCredentials).assumeRole(assumeRequest);
 
@@ -132,13 +132,13 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
 
     public AWSCredentials getCredentials() {
-        return this.getCredentialsWithRoleSessionName(null);
+        return this.getCredentialsWithReqParams(null, 0);
     }
 
     public AWSCredentials getCredentials(String mfaToken) {
         AWSCredentials initialCredentials = new BasicAWSCredentials(accessKey, secretKey.getPlainText());
 
-        AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn, null)
+        AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn, null, 0)
                 .withSerialNumber(iamMfaSerialNumber)
                 .withTokenCode(mfaToken);
 
@@ -161,13 +161,16 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
         return accessKey + ":" + iamRoleArn;
     }
 
-    private static AssumeRoleRequest createAssumeRoleRequest(@QueryParameter("iamRoleArn") String iamRoleArn, String roleSessionName) {
+    private static AssumeRoleRequest createAssumeRoleRequest(@QueryParameter("iamRoleArn") String iamRoleArn, String roleSessionName, int roleSessionDurationSeconds) {
         if (roleSessionName == null) {
             roleSessionName = Jenkins.getActiveInstance().getDisplayName();
         }
+        if (roleSessionDurationSeconds <= 0) {
+            roleSessionDurationSeconds = STS_CREDENTIALS_DURATION_SECONDS;
+        }
         return new AssumeRoleRequest()
                 .withRoleArn(iamRoleArn)
-                .withDurationSeconds(STS_CREDENTIALS_DURATION_SECONDS)
+                .withDurationSeconds(roleSessionDurationSeconds)
                 .withRoleSessionName(roleSessionName);
     }
 
@@ -208,7 +211,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             // If iamRoleArn is specified, swap out the credentials.
             if (!StringUtils.isBlank(iamRoleArn)) {
 
-                AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn, null);
+                AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn, null, 0);
 
                 if(!StringUtils.isBlank(iamMfaSerialNumber)) {
                     if(StringUtils.isBlank(iamMfaToken)) {

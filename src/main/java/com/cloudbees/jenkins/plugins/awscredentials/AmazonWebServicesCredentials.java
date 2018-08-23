@@ -44,7 +44,7 @@ public interface AmazonWebServicesCredentials extends StandardCredentials, AWSCr
 
     String getDisplayName();
 
-    AWSCredentials getCredentialsWithRoleSessionName(String roleSessioName);
+    AWSCredentials getCredentialsWithReqParams(String roleSessioName, int roleSessionDurationSeconds);
     AWSCredentials getCredentials(String mfaToken);
 
     /**

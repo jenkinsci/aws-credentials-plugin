@@ -65,6 +65,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @NonNull
     private final String secretKeyVariable;
     private final String roleSessionName;
+    private final int roleSessionDurationSeconds;
 
     /**
      *
@@ -73,11 +74,12 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
      * @param credentialsId
      */
     @DataBoundConstructor
-    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId, String roleSessionName) {
+    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId, String roleSessionName, Integer roleSessionDurationSeconds) {
         super(credentialsId);
         this.accessKeyVariable = StringUtils.defaultIfBlank(accessKeyVariable, DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME);
         this.secretKeyVariable = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME);
         this.roleSessionName = roleSessionName;
+        this.roleSessionDurationSeconds = roleSessionDurationSeconds == null ? 3600 : roleSessionDurationSeconds;
     }
 
     @NonNull
@@ -98,7 +100,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @Override
     public MultiEnvironment bind(@Nonnull Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
         AmazonWebServicesCredentials awsServicecredentials = getCredentials(build);
-        AWSCredentials credentials = awsServicecredentials.getCredentialsWithRoleSessionName(this.roleSessionName);
+        AWSCredentials credentials = awsServicecredentials.getCredentialsWithReqParams(this.roleSessionName, this.roleSessionDurationSeconds);
         Map<String,String> m = new HashMap<String,String>();
         m.put(this.accessKeyVariable, credentials.getAWSAccessKeyId());
         m.put(this.secretKeyVariable, credentials.getAWSSecretKey());
@@ -125,8 +127,13 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
         @Override public String getDisplayName() {
             return "AWS access key and secret";
         }
+
         public String defaultRoleSessionName() {
             return Jenkins.getActiveInstance().getDisplayName();
+        }
+
+        public Integer defaultRoleSessionDurationSeconds() {
+            return 3600;
         }
     }
 
