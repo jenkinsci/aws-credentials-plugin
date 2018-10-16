@@ -29,13 +29,15 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.cloudbees.plugins.credentials.CredentialsDescriptor;
@@ -114,14 +116,17 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
         if (StringUtils.isBlank(iamRoleArn)) {
             return initialCredentials;
         } else {
+            AWSSecurityTokenService client;
             // Handle the case of delegation to instance profile
             if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText()) ) {
-                initialCredentials = (new InstanceProfileCredentialsProvider()).getCredentials();
+                client = AWSSecurityTokenServiceClientBuilder.defaultClient();
+            } else {
+                client = AWSSecurityTokenServiceClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(initialCredentials)).build();
             }
 
             AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn);
 
-            AssumeRoleResult assumeResult = new AWSSecurityTokenServiceClient(initialCredentials).assumeRole(assumeRequest);
+            AssumeRoleResult assumeResult = client.assumeRole(assumeRequest);
 
             return new BasicSessionCredentials(
                     assumeResult.getCredentials().getAccessKeyId(),
@@ -156,7 +161,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
         return accessKey + ":" + iamRoleArn;
     }
 
-    private static AssumeRoleRequest createAssumeRoleRequest(@QueryParameter("iamRoleArn") String iamRoleArn) {
+    private static AssumeRoleRequest createAssumeRoleRequest(String iamRoleArn) {
         return new AssumeRoleRequest()
                 .withRoleArn(iamRoleArn)
                 .withDurationSeconds(STS_CREDENTIALS_DURATION_SECONDS)
