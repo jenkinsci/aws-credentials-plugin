@@ -53,6 +53,7 @@ import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import java.net.HttpURLConnection;
@@ -67,7 +68,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
     public static final int STS_CREDENTIALS_DURATION_SECONDS = 3600;
     private final String accessKey;
-    private final String awsRegion;
+    private String awsRegion;
 
     private final Secret secretKey;
 
@@ -78,20 +79,29 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
      * Old data bound constructor. It is maintained to keep binary compatibility with clients that were using it directly.
      */
     public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
-                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String awsRegion, @CheckForNull String description) {
-        this(scope, id, accessKey, secretKey, awsRegion, description, null, null);
+                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description) {
+        this(scope, id, accessKey, secretKey, description, null, null);
     }
 
     @DataBoundConstructor
     public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
-                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String awsRegion, @CheckForNull String description,
+                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description,
                               @CheckForNull String iamRoleArn, @CheckForNull String iamMfaSerialNumber) {
         super(scope, id, description);
         this.accessKey = Util.fixNull(accessKey);
         this.secretKey = Secret.fromString(secretKey);
-        this.awsRegion = Util.fixNull(awsRegion);
         this.iamRoleArn = Util.fixNull(iamRoleArn);
         this.iamMfaSerialNumber = Util.fixNull(iamMfaSerialNumber);
+    }
+
+    @CheckForNull
+    public String getAwsRegion() {
+        return awsRegion;
+    }
+
+    @DataBoundSetter
+    public void setAwsRegion(@CheckForNull String awsRegion) {
+        this.awsRegion = Util.fixNull(awsRegion);
     }
 
     public String getAccessKey() {
@@ -100,10 +110,6 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
     public Secret getSecretKey() {
         return secretKey;
-    }
-
-    public String getAwsRegion() {
-        return awsRegion;
     }
 
     public String getIamRoleArn() {
