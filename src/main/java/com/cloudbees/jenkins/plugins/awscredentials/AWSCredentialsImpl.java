@@ -252,7 +252,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             Regions tmpRegion;
             try {
                tmpRegion = Regions.fromName(awsRegion);
-            } catch (AmazonServiceException e) {
+            } catch (IllegalArgumentException e) {
                 return FormValidation.error(e.getMessage());
             }
 
