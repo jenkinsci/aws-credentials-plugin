@@ -68,7 +68,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
     public static final int STS_CREDENTIALS_DURATION_SECONDS = 3600;
     private final String accessKey;
-    private String awsRegion;
+    private String awsRegion = "us-east-1";
 
     private final Secret secretKey;
 
@@ -249,7 +249,14 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             }
 
             AmazonEC2 ec2 = new AmazonEC2Client(awsCredentials,clientConfiguration);
-            final Region region = Region.getRegion(Regions.fromName(awsRegion));
+            Regions tmpRegion;
+            try {
+               tmpRegion = Regions.fromName(awsRegion);
+            } catch (AmazonServiceException e) {
+                return FormValidation.error(e.getMessage());
+            }
+
+            final Region region = Region.getRegion(tmpRegion);
             ec2.setRegion(region);
 
             // TODO better/smarter validation of the credentials instead of verifying the permission on EC2.READ
