@@ -41,9 +41,13 @@ public class AWSDeclarativeCredentialsHandler extends CredentialsBindingHandler<
     @Nonnull
     @Override
     public List<MultiBinding<AmazonWebServicesCredentials>> toBindings(String varName, String credentialsId) {
-        return Collections.singletonList(new AmazonWebServicesCredentialsBinding(varName + "_AWS_KEY_ID",
+        MultiBinding<AmazonWebServicesCredentials> binding = new AmazonWebServicesCredentialsBinding(
+                varName + "_AWS_KEY_ID",
                 varName + "_AWS_SECRET",
-                credentialsId));
+                credentialsId
+        );
+
+        return Collections.singletonList(binding);
     }
 
     @Nonnull
