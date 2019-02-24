@@ -113,12 +113,12 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
     @NonNull
     public Integer getStsTokenDuration() {
-        return stsTokenDuration == null ? DescriptorImpl.defaultStsTokenDuration : stsTokenDuration;
+        return stsTokenDuration == null ? DescriptorImpl.DEFAULT_STS_TOKEN_DURATION : stsTokenDuration;
     }
 
     @DataBoundSetter
-    public void setStsTokenDuration(@NonNull Integer stsTokenDuration) {
-        this.stsTokenDuration = stsTokenDuration.equals(DescriptorImpl.defaultStsTokenDuration) ? null : stsTokenDuration;
+    public void setStsTokenDuration(Integer stsTokenDuration) {
+        this.stsTokenDuration = stsTokenDuration == null || stsTokenDuration.equals(DescriptorImpl.DEFAULT_STS_TOKEN_DURATION) ? null : stsTokenDuration;
     }
 
     public boolean requiresToken() {
@@ -210,7 +210,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             return Messages.AWSCredentialsImpl_DisplayName();
         }
 
-        public static final Integer defaultStsTokenDuration = STS_CREDENTIALS_DURATION_SECONDS;
+        public static final Integer DEFAULT_STS_TOKEN_DURATION = STS_CREDENTIALS_DURATION_SECONDS;
 
         public FormValidation doCheckSecretKey(@QueryParameter("accessKey") final String accessKey,
                                                @QueryParameter("iamRoleArn") final String iamRoleArn,
@@ -265,7 +265,6 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                     LOGGER.log(Level.WARNING, "Unable to assume role [" + iamRoleArn + "] with request [" + assumeRequest + "]", e);
                     return FormValidation.error(Messages.AWSCredentialsImpl_NotAbleToAssumeRole() + " Check the Jenkins log for more details");
                 }
-
             }
 
             AmazonEC2 ec2 = new AmazonEC2Client(awsCredentials,clientConfiguration);
