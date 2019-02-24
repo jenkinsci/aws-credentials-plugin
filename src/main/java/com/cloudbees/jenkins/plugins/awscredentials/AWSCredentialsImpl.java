@@ -32,6 +32,8 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
+import com.amazonaws.regions.DefaultAwsRegionProviderChain;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
@@ -116,12 +118,30 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
         if (StringUtils.isBlank(iamRoleArn)) {
             return initialCredentials;
         } else {
+            // Check for available region from the SDK, otherwise specify default
+            String clientRegion = null;
+            DefaultAwsRegionProviderChain sdkRegionLookup = new DefaultAwsRegionProviderChain();
+            try {
+                clientRegion = sdkRegionLookup.getRegion();
+            }
+            catch(com.amazonaws.SdkClientException e) {
+                LOGGER.log(Level.WARNING,"Could not find default region using SDK lookup.", e);
+            }
+            if (clientRegion == null) {
+                clientRegion = Regions.DEFAULT_REGION.getName();
+            }
+
             AWSSecurityTokenService client;
             // Handle the case of delegation to instance profile
             if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText()) ) {
-                client = AWSSecurityTokenServiceClientBuilder.defaultClient();
+                client = AWSSecurityTokenServiceClientBuilder.standard()
+                        .withRegion(clientRegion)
+                        .build();
             } else {
-                client = AWSSecurityTokenServiceClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(initialCredentials)).build();
+                client = AWSSecurityTokenServiceClientBuilder.standard()
+                        .withCredentials(new AWSStaticCredentialsProvider(initialCredentials))
+                        .withRegion(clientRegion)
+                        .build();
             }
 
             AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn);
