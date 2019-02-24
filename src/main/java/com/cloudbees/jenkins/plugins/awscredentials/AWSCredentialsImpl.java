@@ -119,17 +119,16 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             return initialCredentials;
         } else {
             // Check for available region from the SDK, otherwise specify default
-            String clientRegion;
+            String clientRegion = null;
             DefaultAwsRegionProviderChain sdkRegionLookup = new DefaultAwsRegionProviderChain();
             try {
                 clientRegion = sdkRegionLookup.getRegion();
             }
             catch(com.amazonaws.SdkClientException e) {
-                if (e.getMessage() == "Unable to load region information from any provider in the chain") {
-                    clientRegion = Regions.DEFAULT_REGION.getName();
-                } else {
-                    throw e;
-                }
+                LOGGER.log(Level.WARNING,"Could not find default region using SDK lookup.", e);
+            }
+            if (clientRegion == null) {
+                clientRegion = Regions.DEFAULT_REGION.getName();
             }
 
             AWSSecurityTokenService client;
