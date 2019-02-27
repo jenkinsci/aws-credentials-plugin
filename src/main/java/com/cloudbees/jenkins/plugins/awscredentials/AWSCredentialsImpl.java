@@ -104,7 +104,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
     @DataBoundSetter
     public void setAwsRegion(@CheckForNull String awsRegion) {
-        this.awsRegion = awsRegion == null || awsRegion == "" ? "us-east-1" : Util.fixNull(awsRegion);
+        this.awsRegion = awsRegion.equals("") || awsRegion.equals(null) ? "us-east-1" : Util.fixNull(awsRegion);
     }
 
     public String getAccessKey() {
