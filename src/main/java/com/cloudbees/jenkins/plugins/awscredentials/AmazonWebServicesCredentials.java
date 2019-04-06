@@ -45,6 +45,7 @@ public interface AmazonWebServicesCredentials extends StandardCredentials, AWSCr
     String getDisplayName();
 
     AWSCredentials getCredentials(String mfaToken);
+    AWSCredentials getCredentials(int stsTokenDuration);
 
     /**
      * Our name provider.
@@ -61,5 +62,4 @@ public interface AmazonWebServicesCredentials extends StandardCredentials, AWSCr
             return c.getDisplayName() + (description != null ? " (" + description + ")" : "");
         }
     }
-
 }

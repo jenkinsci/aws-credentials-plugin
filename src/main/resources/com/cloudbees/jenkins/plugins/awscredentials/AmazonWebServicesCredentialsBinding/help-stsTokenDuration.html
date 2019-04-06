@@ -1,4 +1,3 @@
-<?jelly escape-by-default='true'?>
 <!--
   ~ The MIT License
   ~
@@ -23,29 +22,6 @@
   ~  THE SOFTWARE.
   ~
   -->
-
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
-  <st:include page="id-and-description" class="${descriptor.clazz}"/>
-  <f:entry title="${%Access Key ID}" field="accessKey">
-    <f:textbox/>
-  </f:entry>
-  <f:entry title="${%Secret Access Key}" field="secretKey">
-    <f:password/>
-  </f:entry>
-  <f:section title="IAM Role Support">
-    <f:advanced>
-      <f:entry title="${%IAM Role To Use}" field="iamRoleArn">
-        <f:textbox/>
-      </f:entry>
-      <f:entry title="${%MFA Serial Number}" field="iamMfaSerialNumber">
-        <f:textbox/>
-      </f:entry>
-      <f:entry title="${%MFA Token}" field="iamMfaToken">
-        <f:textbox/>
-      </f:entry>
-      <f:entry title="${%Default STS Token Duration (sec)}" field="stsTokenDuration">
-        <f:textbox default="${descriptor.DEFAULT_STS_TOKEN_DURATION}"/>
-      </f:entry>
-    </f:advanced>
-  </f:section>
-</j:jelly>
+<div>
+    Override the STS Token Duration for these credentials. <i>(optional)</i>
+</div>
