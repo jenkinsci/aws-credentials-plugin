@@ -121,6 +121,10 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
         @Override public String getDisplayName() {
             return "AWS access key and secret";
         }
+
+        @Override public boolean requiresWorkspace() {
+            return false;
+        }
     }
 
 }
