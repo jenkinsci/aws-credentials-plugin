@@ -25,7 +25,7 @@
 package com.cloudbees.jenkins.plugins.awscredentials;
 
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
-import hudson.Extension;
+import org.jenkinsci.plugins.variant.OptionalExtension;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
 import org.jenkinsci.plugins.pipeline.modeldefinition.model.CredentialsBindingHandler;
 
@@ -35,7 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Extension
+@OptionalExtension(requirePlugins = "pipeline-model-extensions")
 public class AWSDeclarativeCredentialsHandler extends CredentialsBindingHandler<AmazonWebServicesCredentials> {
 
     @Nonnull
