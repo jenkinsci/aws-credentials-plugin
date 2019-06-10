@@ -27,9 +27,6 @@ package com.cloudbees.jenkins.plugins.awscredentials;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSSessionCredentials;
-import com.amazonaws.auth.BasicSessionCredentials;
-
-import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
@@ -40,6 +37,7 @@ import hudson.model.TaskListener;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
@@ -111,6 +109,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
         return new HashSet<String>(Arrays.asList(accessKeyVariable, secretKeyVariable));
     }
 
+    @Symbol("aws")
     @Extension
     public static class DescriptorImpl extends BindingDescriptor<AmazonWebServicesCredentials> {
 
