@@ -199,7 +199,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
     private static AssumeRoleRequest createAssumeRoleRequest(String iamRoleArn) {
         return new AssumeRoleRequest()
                 .withRoleArn(iamRoleArn)
-                .withRoleSessionName(Jenkins.getActiveInstance().getDisplayName().trim());
+                .withRoleSessionName("Jenkins");
     }
 
     @Extension
