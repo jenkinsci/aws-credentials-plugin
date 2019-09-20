@@ -126,6 +126,10 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
     }
 
     public AWSCredentials getCredentials() {
+        return getCredentials(this.getStsTokenDuration());
+    }
+
+    public AWSCredentials getCredentials(int stsTokenDuration) {
         AWSCredentials initialCredentials = new BasicAWSCredentials(accessKey, secretKey.getPlainText());
 
         if (StringUtils.isBlank(iamRoleArn)) {
@@ -158,7 +162,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             }
 
             AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn)
-                    .withDurationSeconds(this.getStsTokenDuration());
+                    .withDurationSeconds(stsTokenDuration);
 
             AssumeRoleResult assumeResult = client.assumeRole(assumeRequest);
 

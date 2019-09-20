@@ -27,9 +27,7 @@ package com.cloudbees.jenkins.plugins.awscredentials;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSSessionCredentials;
-import com.amazonaws.auth.BasicSessionCredentials;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
@@ -41,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -63,6 +62,8 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     private final String accessKeyVariable;
     @NonNull
     private final String secretKeyVariable;
+    @Nullable
+    private volatile Integer stsTokenDuration;
 
     /**
      *
@@ -87,6 +88,16 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
         return secretKeyVariable;
     }
 
+    @Nullable
+    public Integer getStsTokenDuration() {
+        return this.stsTokenDuration;
+    }
+
+    @DataBoundSetter
+    public void setStsTokenDuration(@Nullable Integer stsTokenDuration) {
+        this.stsTokenDuration = stsTokenDuration;
+    }
+
     @Override
     protected Class<AmazonWebServicesCredentials> type() {
         return AmazonWebServicesCredentials.class;
@@ -94,7 +105,13 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
     @Override
     public MultiEnvironment bind(@Nonnull Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
-        AWSCredentials credentials = getCredentials(build).getCredentials();
+        AmazonWebServicesCredentials credentialRetriever = getCredentials(build);
+        AWSCredentials credentials = null;
+        if (stsTokenDuration != null) {
+            credentials = credentialRetriever.getCredentials(stsTokenDuration);
+        } else {
+            credentials = credentialRetriever.getCredentials();
+        }
         Map<String,String> m = new HashMap<String,String>();
         m.put(accessKeyVariable, credentials.getAWSAccessKeyId());
         m.put(secretKeyVariable, credentials.getAWSSecretKey());
