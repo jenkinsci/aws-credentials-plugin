@@ -144,16 +144,21 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                 clientRegion = Regions.DEFAULT_REGION.getName();
             }
 
+            ProxyConfiguration proxy = Jenkins.getInstanceOrNull().proxy;
+            ClientConfiguration clientConfiguration = getClientConfiguration();
+
             AWSSecurityTokenService client;
             // Handle the case of delegation to instance profile
             if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText()) ) {
                 client = AWSSecurityTokenServiceClientBuilder.standard()
                         .withRegion(clientRegion)
+                        .withClientConfiguration(clientConfiguration)
                         .build();
             } else {
                 client = AWSSecurityTokenServiceClientBuilder.standard()
                         .withCredentials(new AWSStaticCredentialsProvider(initialCredentials))
                         .withRegion(clientRegion)
+                        .withClientConfiguration(clientConfiguration)
                         .build();
             }
 
@@ -177,7 +182,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                 .withTokenCode(mfaToken)
                 .withDurationSeconds(this.getStsTokenDuration());
 
-        AssumeRoleResult assumeResult = new AWSSecurityTokenServiceClient(initialCredentials).assumeRole(assumeRequest);
+        AWSSecurityTokenService awsSecurityTokenService = getAWSSecurityTokenService(initialCredentials);
+        AssumeRoleResult assumeResult = awsSecurityTokenService.assumeRole(assumeRequest);
 
         return new BasicSessionCredentials(
                 assumeResult.getCredentials().getAccessKeyId(),
@@ -200,6 +206,44 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
         return new AssumeRoleRequest()
                 .withRoleArn(iamRoleArn)
                 .withRoleSessionName("Jenkins");
+    }
+
+    /**
+     * Provides the {@link AWSSecurityTokenService} for a given {@link AWSCredentials}
+     * @param awsCredentials
+     *
+     * @return {@link AWSSecurityTokenService}
+     */
+    private static AWSSecurityTokenService getAWSSecurityTokenService(AWSCredentials awsCredentials) {
+        ProxyConfiguration proxy = Jenkins.getActiveInstance().proxy;
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        if(proxy != null) {
+            clientConfiguration.setProxyHost(proxy.name);
+            clientConfiguration.setProxyPort(proxy.port);
+            clientConfiguration.setProxyUsername(proxy.getUserName());
+            clientConfiguration.setProxyPassword(proxy.getPassword());
+        }
+        return AWSSecurityTokenServiceClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                .withClientConfiguration(clientConfiguration)
+                .build();
+    }
+
+    /**
+     * Provides the {@link ClientConfiguration}
+     *
+     * @return {@link ClientConfiguration}
+     */
+    private static ClientConfiguration getClientConfiguration() {
+        ProxyConfiguration proxy = Jenkins.getInstanceOrNull().proxy;
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        if(proxy != null) {
+            clientConfiguration.setProxyHost(proxy.name);
+            clientConfiguration.setProxyPort(proxy.port);
+            clientConfiguration.setProxyUsername(proxy.getUserName());
+            clientConfiguration.setProxyPassword(proxy.getPassword());
+        }
+        return clientConfiguration;
     }
 
     @Extension
@@ -228,15 +272,6 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                 return FormValidation.error(Messages.AWSCredentialsImpl_SpecifySecretAccessKey());
             }
 
-            ProxyConfiguration proxy = Jenkins.getActiveInstance().proxy;
-            ClientConfiguration clientConfiguration = new ClientConfiguration();
-            if(proxy != null) {
-            	clientConfiguration.setProxyHost(proxy.name);
-            	clientConfiguration.setProxyPort(proxy.port);
-            	clientConfiguration.setProxyUsername(proxy.getUserName());
-            	clientConfiguration.setProxyPassword(proxy.getPassword());
-            }
-
             AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, Secret.fromString(secretKey).getPlainText());
 
             // If iamRoleArn is specified, swap out the credentials.
@@ -255,19 +290,22 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                 }
 
                 try {
-                    AssumeRoleResult assumeResult = new AWSSecurityTokenServiceClient(awsCredentials).assumeRole(assumeRequest);
+                    AWSSecurityTokenService awsSecurityTokenService = getAWSSecurityTokenService(awsCredentials);
+                    AssumeRoleResult assumeResult = awsSecurityTokenService.assumeRole(assumeRequest);
 
                     awsCredentials = new BasicSessionCredentials(
                             assumeResult.getCredentials().getAccessKeyId(),
                             assumeResult.getCredentials().getSecretAccessKey(),
                             assumeResult.getCredentials().getSessionToken());
+
+
                 } catch(AmazonServiceException e) {
                     LOGGER.log(Level.WARNING, "Unable to assume role [" + iamRoleArn + "] with request [" + assumeRequest + "]", e);
                     return FormValidation.error(Messages.AWSCredentialsImpl_NotAbleToAssumeRole() + " Check the Jenkins log for more details");
                 }
             }
 
-            AmazonEC2 ec2 = new AmazonEC2Client(awsCredentials,clientConfiguration);
+            AmazonEC2 ec2 = new AmazonEC2Client(awsCredentials, getClientConfiguration());
 
             // TODO better/smarter validation of the credentials instead of verifying the permission on EC2.READ in us-east-1
             String region = "us-east-1";
