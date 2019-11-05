@@ -215,14 +215,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
      * @return {@link AWSSecurityTokenService}
      */
     private static AWSSecurityTokenService getAWSSecurityTokenService(AWSCredentials awsCredentials) {
-        ProxyConfiguration proxy = Jenkins.getActiveInstance().proxy;
-        ClientConfiguration clientConfiguration = new ClientConfiguration();
-        if(proxy != null) {
-            clientConfiguration.setProxyHost(proxy.name);
-            clientConfiguration.setProxyPort(proxy.port);
-            clientConfiguration.setProxyUsername(proxy.getUserName());
-            clientConfiguration.setProxyPassword(proxy.getPassword());
-        }
+        ClientConfiguration clientConfiguration = getClientConfiguration();
         return AWSSecurityTokenServiceClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
                 .withClientConfiguration(clientConfiguration)
