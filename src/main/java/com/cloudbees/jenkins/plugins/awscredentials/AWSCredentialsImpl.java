@@ -144,7 +144,6 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                 clientRegion = Regions.DEFAULT_REGION.getName();
             }
 
-            ProxyConfiguration proxy = Jenkins.getInstanceOrNull().proxy;
             ClientConfiguration clientConfiguration = getClientConfiguration();
 
             AWSSecurityTokenService client;
@@ -228,9 +227,15 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
      * @return {@link ClientConfiguration}
      */
     private static ClientConfiguration getClientConfiguration() {
-        ProxyConfiguration proxy = Jenkins.getInstanceOrNull().proxy;
+        Jenkins instance = Jenkins.getInstanceOrNull();
+
+        if (instance == null) {
+            return null;
+        }
+
+        ProxyConfiguration proxy = instance.proxy;
         ClientConfiguration clientConfiguration = new ClientConfiguration();
-        if(proxy != null) {
+        if (proxy != null && proxy.name != null && proxy.name.isEmpty()) {
             clientConfiguration.setProxyHost(proxy.name);
             clientConfiguration.setProxyPort(proxy.port);
             clientConfiguration.setProxyUsername(proxy.getUserName());
@@ -290,8 +295,6 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                             assumeResult.getCredentials().getAccessKeyId(),
                             assumeResult.getCredentials().getSecretAccessKey(),
                             assumeResult.getCredentials().getSessionToken());
-
-
                 } catch(AmazonServiceException e) {
                     LOGGER.log(Level.WARNING, "Unable to assume role [" + iamRoleArn + "] with request [" + assumeRequest + "]", e);
                     return FormValidation.error(Messages.AWSCredentialsImpl_NotAbleToAssumeRole() + " Check the Jenkins log for more details");
