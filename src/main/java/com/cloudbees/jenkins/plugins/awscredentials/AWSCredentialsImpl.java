@@ -235,7 +235,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
         ProxyConfiguration proxy = instance.proxy;
         ClientConfiguration clientConfiguration = new ClientConfiguration();
-        if (proxy != null && proxy.name != null && proxy.name.isEmpty()) {
+        if (proxy != null && proxy.name != null && !proxy.name.isEmpty()) {
             clientConfiguration.setProxyHost(proxy.name);
             clientConfiguration.setProxyPort(proxy.port);
             clientConfiguration.setProxyUsername(proxy.getUserName());
