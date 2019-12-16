@@ -227,13 +227,9 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
      * @return {@link ClientConfiguration}
      */
     private static ClientConfiguration getClientConfiguration() {
-        Jenkins instance = Jenkins.getInstanceOrNull();
+        Jenkins instance = Jenkins.getInstance();
 
-        if (instance == null) {
-            return null;
-        }
-
-        ProxyConfiguration proxy = instance.proxy;
+        ProxyConfiguration proxy = instance != null ? instance.proxy : null;
         ClientConfiguration clientConfiguration = new ClientConfiguration();
         if (proxy != null && proxy.name != null && !proxy.name.isEmpty()) {
             clientConfiguration.setProxyHost(proxy.name);
