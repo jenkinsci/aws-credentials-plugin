@@ -43,6 +43,7 @@ public class AWSDeclarativeCredentialsHandler extends CredentialsBindingHandler<
     public List<MultiBinding<AmazonWebServicesCredentials>> toBindings(String varName, String credentialsId) {
         return Collections.singletonList(new AmazonWebServicesCredentialsBinding(varName + "_AWS_KEY_ID",
                 varName + "_AWS_SECRET",
+                varName + "_AWS_SESSION_TOKEN",
                 credentialsId));
     }
 
@@ -59,6 +60,7 @@ public class AWSDeclarativeCredentialsHandler extends CredentialsBindingHandler<
         map.put("$class", AmazonWebServicesCredentialsBinding.class.getName());
         map.put("keyIdVariable", new EnvVarResolver("%s_AWS_KEY_ID"));
         map.put("secretVariable", new EnvVarResolver("%s_AWS_SECRET"));
+        map.put("sessionTokenVariable", new EnvVarResolver("%s_AWS_SESSION_TOKEN"));
         map.put("credentialsId", credentialsId);
         return Collections.singletonList(map);
     }
