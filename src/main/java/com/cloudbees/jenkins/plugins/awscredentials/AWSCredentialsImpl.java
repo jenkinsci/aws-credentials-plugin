@@ -290,7 +290,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                             assumeResult.getCredentials().getAccessKeyId(),
                             assumeResult.getCredentials().getSecretAccessKey(),
                             assumeResult.getCredentials().getSessionToken());
-                } catch (SdkClientException e) {
+                } catch (RuntimeException e) {
                     LOGGER.log(Level.WARNING, "Unable to assume role [" + iamRoleArn + "] with request [" + assumeRequest + "]", e);
                     return FormValidation.error(Messages.AWSCredentialsImpl_NotAbleToAssumeRole() + " Check the Jenkins log for more details");
                 }
