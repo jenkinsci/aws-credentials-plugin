@@ -28,6 +28,7 @@ package com.cloudbees.jenkins.plugins.awscredentials;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -136,9 +137,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             DefaultAwsRegionProviderChain sdkRegionLookup = new DefaultAwsRegionProviderChain();
             try {
                 clientRegion = sdkRegionLookup.getRegion();
-            }
-            catch(com.amazonaws.SdkClientException e) {
-                LOGGER.log(Level.WARNING,"Could not find default region using SDK lookup.", e);
+            } catch (com.amazonaws.SdkClientException e) {
+                LOGGER.log(Level.WARNING, "Could not find default region using SDK lookup.", e);
             }
             if (clientRegion == null) {
                 clientRegion = Regions.DEFAULT_REGION.getName();
@@ -148,7 +148,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
             AWSSecurityTokenService client;
             // Handle the case of delegation to instance profile
-            if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText()) ) {
+            if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText())) {
                 client = AWSSecurityTokenServiceClientBuilder.standard()
                         .withRegion(clientRegion)
                         .withClientConfiguration(clientConfiguration)
@@ -209,8 +209,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
     /**
      * Provides the {@link AWSSecurityTokenService} for a given {@link AWSCredentials}
-     * @param awsCredentials
      *
+     * @param awsCredentials
      * @return {@link AWSSecurityTokenService}
      */
     private static AWSSecurityTokenService getAWSSecurityTokenService(AWSCredentials awsCredentials) {
@@ -274,8 +274,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                 AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn)
                         .withDurationSeconds(stsTokenDuration);
 
-                if(!StringUtils.isBlank(iamMfaSerialNumber)) {
-                    if(StringUtils.isBlank(iamMfaToken)) {
+                if (!StringUtils.isBlank(iamMfaSerialNumber)) {
+                    if (StringUtils.isBlank(iamMfaToken)) {
                         return FormValidation.error(Messages.AWSCredentialsImpl_SpecifyMFAToken());
                     }
                     assumeRequest = assumeRequest
@@ -291,7 +291,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                             assumeResult.getCredentials().getAccessKeyId(),
                             assumeResult.getCredentials().getSecretAccessKey(),
                             assumeResult.getCredentials().getSessionToken());
-                } catch(AmazonServiceException e) {
+                } catch (SdkClientException e) {
                     LOGGER.log(Level.WARNING, "Unable to assume role [" + iamRoleArn + "] with request [" + assumeRequest + "]", e);
                     return FormValidation.error(Messages.AWSCredentialsImpl_NotAbleToAssumeRole() + " Check the Jenkins log for more details");
                 }
