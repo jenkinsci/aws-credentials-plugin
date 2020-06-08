@@ -136,7 +136,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             DefaultAwsRegionProviderChain sdkRegionLookup = new DefaultAwsRegionProviderChain();
             try {
                 clientRegion = sdkRegionLookup.getRegion();
-            } catch (com.amazonaws.SdkClientException e) {
+            } catch (RuntimeException e) {
                 LOGGER.log(Level.WARNING, "Could not find default region using SDK lookup.", e);
             }
             if (clientRegion == null) {
