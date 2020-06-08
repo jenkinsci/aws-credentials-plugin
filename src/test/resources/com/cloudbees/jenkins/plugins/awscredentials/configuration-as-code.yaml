@@ -1,0 +1,12 @@
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - aws:
+              accessKey: "foo"
+              description: "foo-description"
+              iamMfaSerialNumber: "arn:aws:iam::123456789012:mfa/user"
+              iamRoleArn: "arn:aws:iam::123456789012:role/MyIAMRoleName"
+              id: "aws-credentials-casc"
+              scope: GLOBAL
+              secretKey: "bar"
