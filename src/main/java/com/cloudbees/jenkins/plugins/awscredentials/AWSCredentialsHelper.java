@@ -2,10 +2,13 @@ package com.cloudbees.jenkins.plugins.awscredentials;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.AbstractIdCredentialsListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.CheckForNull;
@@ -30,14 +33,24 @@ public class AWSCredentialsHelper {
                 CredentialsMatchers.withId(credentialsId));
     }
 
+    private static boolean hasPermission(ItemGroup context) {
+        if (context instanceof Item) {
+            return ((Item) context).hasPermission(Item.CONFIGURE);
+        } else {
+            return Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER);
+        }
+    }
+
     public static ListBoxModel doFillCredentialsIdItems(ItemGroup context) {
-        return new StandardListBoxModel()
-                .withEmptySelection()
-                .withMatching(
-                        CredentialsMatchers.always(),
-                        CredentialsProvider.lookupCredentials(AmazonWebServicesCredentials.class,
-                                context,
-                                ACL.SYSTEM,
-                                Collections.EMPTY_LIST));
+        AbstractIdCredentialsListBoxModel result = new StandardListBoxModel().includeEmptyValue();
+        if (hasPermission(context)) {
+            result = result.withMatching(
+                            CredentialsMatchers.always(),
+                            CredentialsProvider.lookupCredentials(AmazonWebServicesCredentials.class,
+                                    context,
+                                    ACL.SYSTEM,
+                                    Collections.EMPTY_LIST));
+        }
+        return result;
     }
 }
