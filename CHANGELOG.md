@@ -1,5 +1,18 @@
 # Changelog
 
+### Version 1.29 (Apr 12th, 2021)
+
+-   [PR\#76](https://github.com/jenkinsci/aws-credentials-plugin/pull/76):
+    Fix angry jenkins with broader exception handling.
+-   [PR\#71](https://github.com/jenkinsci/aws-credentials-plugin/pull/71): 
+    AssumeRole does not honour proxy settings
+    \[[JENKINS-60057](https://issues.jenkins-ci.org/browse/JENKINS-60057)\].
+-   [PR\#65](https://github.com/jenkinsci/aws-credentials-plugin/pull/65):    
+    Add a @Symbol to AmazonWebServicesCredentialsBinding
+-   [PR\#53](https://github.com/jenkinsci/aws-credentials-plugin/pull/53): 
+    Remove workspace requirement
+    \[[JENKINS-57075](https://issues.jenkins-ci.org/browse/JENKINS-57075)\].
+
 ### Version 1.28.1 (Mar 18th, 2021)
 
 -   Missing permission checks in CloudBees AWS Credentials Plugin allows enumerating credentials IDs:
