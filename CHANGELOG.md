@@ -1,5 +1,10 @@
 # Changelog
 
+### Version 1.28.1 (Mar 18th, 2021)
+
+-   Missing permission checks in CloudBees AWS Credentials Plugin allows enumerating credentials IDs:
+     \[[SECURITY-2032](https://www.jenkins.io/security/advisory/2021-03-18/#SECURITY-2032)\].
+
 ### Version 1.28 (Sep 2nd, 2019)
 
 -   [PR\#69](https://github.com/jenkinsci/aws-credentials-plugin/pull/69):
