@@ -38,7 +38,7 @@
   <packaging>hpi</packaging>
 
   <name>CloudBees AWS Credentials Plugin</name>
-  <url>https://wiki.jenkins.io/display/JENKINS/CloudBees+AWS+Credentials+Plugin</url>
+  <url>https://github.com/jenkinsci/aws-credentials-plugin</url>
   <licenses>
     <license>
       <name>MIT License</name>
