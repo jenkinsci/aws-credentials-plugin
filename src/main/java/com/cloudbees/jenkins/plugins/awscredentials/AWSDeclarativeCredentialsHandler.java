@@ -26,7 +26,6 @@ package com.cloudbees.jenkins.plugins.awscredentials;
 
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import org.jenkinsci.plugins.variant.OptionalExtension;
-import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
 import org.jenkinsci.plugins.pipeline.modeldefinition.model.CredentialsBindingHandler;
 
 import javax.annotation.Nonnull;
@@ -37,14 +36,6 @@ import java.util.Map;
 
 @OptionalExtension(requirePlugins = "pipeline-model-extensions")
 public class AWSDeclarativeCredentialsHandler extends CredentialsBindingHandler<AmazonWebServicesCredentials> {
-
-    @Nonnull
-    @Override
-    public List<MultiBinding<AmazonWebServicesCredentials>> toBindings(String varName, String credentialsId) {
-        return Collections.singletonList(new AmazonWebServicesCredentialsBinding(varName + "_AWS_KEY_ID",
-                varName + "_AWS_SECRET",
-                credentialsId));
-    }
 
     @Nonnull
     @Override
