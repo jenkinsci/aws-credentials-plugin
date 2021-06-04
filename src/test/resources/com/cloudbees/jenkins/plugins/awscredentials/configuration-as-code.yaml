@@ -7,6 +7,7 @@ credentials:
               description: "foo-description"
               iamMfaSerialNumber: "arn:aws:iam::123456789012:mfa/user"
               iamRoleArn: "arn:aws:iam::123456789012:role/MyIAMRoleName"
+              iamExternalId: "123456"
               id: "aws-credentials-casc"
               scope: GLOBAL
               secretKey: "bar"

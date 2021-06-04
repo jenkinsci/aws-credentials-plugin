@@ -24,6 +24,7 @@ public class ConfigurationAsCodeTest extends RoundTripAbstractTest {
         assertEquals(credentials.getDescription(), "foo-description");
         assertEquals(credentials.getIamMfaSerialNumber(), "arn:aws:iam::123456789012:mfa/user");
         assertEquals(credentials.getIamRoleArn(), "arn:aws:iam::123456789012:role/MyIAMRoleName");
+        assertEquals(credentials.getIamExternalId(), "123456");
         assertEquals(credentials.getId(), "aws-credentials-casc");
         assertEquals(credentials.getScope(), CredentialsScope.GLOBAL);
         assertEquals(credentials.getSecretKey().getPlainText(), "bar");
