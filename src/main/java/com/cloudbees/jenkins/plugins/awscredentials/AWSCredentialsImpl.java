@@ -28,8 +28,8 @@ package com.cloudbees.jenkins.plugins.awscredentials;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
@@ -131,34 +131,15 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
         if (StringUtils.isBlank(iamRoleArn)) {
             return initialCredentials;
         } else {
-            // Check for available region from the SDK, otherwise specify default
-            String clientRegion = null;
-            DefaultAwsRegionProviderChain sdkRegionLookup = new DefaultAwsRegionProviderChain();
-            try {
-                clientRegion = sdkRegionLookup.getRegion();
-            } catch (RuntimeException e) {
-                LOGGER.log(Level.WARNING, "Could not find default region using SDK lookup.", e);
-            }
-            if (clientRegion == null) {
-                clientRegion = Regions.DEFAULT_REGION.getName();
-            }
-
-            ClientConfiguration clientConfiguration = getClientConfiguration();
-
-            AWSSecurityTokenService client;
+            AWSCredentialsProvider baseProvider;
             // Handle the case of delegation to instance profile
             if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText())) {
-                client = AWSSecurityTokenServiceClientBuilder.standard()
-                        .withRegion(clientRegion)
-                        .withClientConfiguration(clientConfiguration)
-                        .build();
+                baseProvider = null;
             } else {
-                client = AWSSecurityTokenServiceClientBuilder.standard()
-                        .withCredentials(new AWSStaticCredentialsProvider(initialCredentials))
-                        .withRegion(clientRegion)
-                        .withClientConfiguration(clientConfiguration)
-                        .build();
+               baseProvider = new AWSStaticCredentialsProvider(initialCredentials);
             }
+
+            AWSSecurityTokenService client = buildStsClient(baseProvider);
 
             AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn)
                     .withDurationSeconds(this.getStsTokenDuration());
@@ -198,6 +179,30 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
             return accessKey;
         }
         return accessKey + ":" + iamRoleArn;
+    }
+
+    /*package*/ static AWSSecurityTokenService buildStsClient(AWSCredentialsProvider provider) {
+        // Check for available region from the SDK, otherwise specify default
+        String clientRegion = null;
+        DefaultAwsRegionProviderChain sdkRegionLookup = new DefaultAwsRegionProviderChain();
+        try {
+            clientRegion = sdkRegionLookup.getRegion();
+        } catch(RuntimeException e) {
+            LOGGER.log(Level.WARNING, "Could not find default region using SDK lookup.", e);
+        }
+        if (clientRegion == null) {
+            clientRegion = Regions.DEFAULT_REGION.getName();
+        }
+
+        AWSSecurityTokenServiceClientBuilder builder = AWSSecurityTokenServiceClientBuilder.standard()
+                        .withRegion(clientRegion)
+                        .withClientConfiguration(getClientConfiguration());
+
+        if (provider != null) {
+            builder = builder.withCredentials(provider);
+        }
+
+        return builder.build();
     }
 
     private static AssumeRoleRequest createAssumeRoleRequest(String iamRoleArn) {

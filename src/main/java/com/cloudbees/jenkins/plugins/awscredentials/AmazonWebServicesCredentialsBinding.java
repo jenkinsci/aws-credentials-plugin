@@ -27,6 +27,10 @@ package com.cloudbees.jenkins.plugins.awscredentials;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSSessionCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSSessionCredentialsProvider;
+import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
@@ -39,6 +43,7 @@ import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -61,6 +66,10 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     private final String accessKeyVariable;
     @NonNull
     private final String secretKeyVariable;
+
+    private String roleArn;
+    private String roleSessionName;
+    private int roleSessionDurationSeconds;
 
     /**
      *
@@ -85,6 +94,21 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
         return secretKeyVariable;
     }
 
+    @DataBoundSetter
+    public void setRoleArn(String roleArn) {
+        this.roleArn = roleArn;
+    }
+
+    @DataBoundSetter
+    public void setRoleSessionName(String roleSessionName) {
+        this.roleSessionName = roleSessionName;
+    }
+
+    @DataBoundSetter
+    public void setRoleSessionDurationSeconds(int roleSessionDurationSeconds) {
+        this.roleSessionDurationSeconds = roleSessionDurationSeconds;
+    }
+
     @Override
     protected Class<AmazonWebServicesCredentials> type() {
         return AmazonWebServicesCredentials.class;
@@ -92,7 +116,13 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
     @Override
     public MultiEnvironment bind(@Nonnull Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
-        AWSCredentials credentials = getCredentials(build).getCredentials();
+        AWSCredentialsProvider provider = getCredentials(build);
+        if (!StringUtils.isEmpty(this.roleArn)) {
+            provider = this.assumeRoleProvider(provider);
+        }
+
+        AWSCredentials credentials = provider.getCredentials();
+
         Map<String,String> m = new HashMap<String,String>();
         m.put(accessKeyVariable, credentials.getAWSAccessKeyId());
         m.put(secretKeyVariable, credentials.getAWSSecretKey());
@@ -104,9 +134,26 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
         return new MultiEnvironment(m);
     }
 
+    private AWSSessionCredentialsProvider assumeRoleProvider(AWSCredentialsProvider baseProvider) {
+        AWSSecurityTokenService stsClient = AWSCredentialsImpl.buildStsClient(baseProvider);
+
+        String roleSessionName = StringUtils.defaultIfBlank(this.roleSessionName, "Jenkins");
+
+        STSAssumeRoleSessionCredentialsProvider.Builder assumeRoleProviderBuilder =
+                new STSAssumeRoleSessionCredentialsProvider.Builder(this.roleArn, roleSessionName)
+                .withStsClient(stsClient);
+
+        if (this.roleSessionDurationSeconds > 0) {
+            assumeRoleProviderBuilder = assumeRoleProviderBuilder
+                .withRoleSessionDurationSeconds(this.roleSessionDurationSeconds);
+        }
+
+        return assumeRoleProviderBuilder.build();
+    }
+
     @Override
     public Set<String> variables() {
-        return new HashSet<String>(Arrays.asList(accessKeyVariable, secretKeyVariable));
+        return new HashSet<String>(Arrays.asList(accessKeyVariable, secretKeyVariable, SESSION_TOKEN_VARIABLE_NAME));
     }
 
     @Symbol("aws")
