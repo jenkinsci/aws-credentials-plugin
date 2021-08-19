@@ -1,5 +1,10 @@
 # Changelog
 
+### Version 1.30 (Aug 9th, 2021)
+
+-   [PR\#81](https://github.com/jenkinsci/aws-credentials-plugin/pull/81):
+    Allow specifying AWS role at runtime.
+
 ### Version 1.29 (Apr 12th, 2021)
 
 -   [PR\#76](https://github.com/jenkinsci/aws-credentials-plugin/pull/76):
