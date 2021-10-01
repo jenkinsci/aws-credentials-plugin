@@ -34,7 +34,7 @@
   </parent>
 
   <artifactId>aws-credentials</artifactId>
-  <version>1.31</version>
+  <version>${revision}${changelist}</version>
   <packaging>hpi</packaging>
 
   <name>CloudBees AWS Credentials Plugin</name>
@@ -50,11 +50,11 @@
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-    <tag>aws-credentials-1.31</tag>
+    <tag>${scmTag}</tag>
   </scm>
 
   <properties>
-    <revision>1.31</revision>
+    <revision>1.32</revision>
     <changelist>-SNAPSHOT</changelist>
     <jenkins.version>2.164.3</jenkins.version>
     <java.level>8</java.level>
