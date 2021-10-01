@@ -1,5 +1,9 @@
 # Changelog
 
+### Version 1.31 and newer (Oct 1st, 2021)
+
+No longer tracked in this file. See [GitHub releases](https://github.com/jenkinsci/aws-credentials-plugin/releases) instead.
+
 ### Version 1.30 (Aug 9th, 2021)
 
 -   [PR\#81](https://github.com/jenkinsci/aws-credentials-plugin/pull/81):
