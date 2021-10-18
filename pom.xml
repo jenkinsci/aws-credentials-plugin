@@ -58,7 +58,7 @@
     <changelist>-SNAPSHOT</changelist>
     <jenkins.version>2.249.1</jenkins.version>
     <java.level>8</java.level>
-    <aws-java-sdk.version>1.12.70</aws-java-sdk.version>
+    <aws-java-sdk.version>1.12.89-292.v2712528e879c</aws-java-sdk.version>
   </properties>
 
   <dependencyManagement>
