@@ -55,7 +55,7 @@
   </licenses>
 
   <properties>
-    <revision>1.29</revision>
+    <revision>1.28.2</revision>
     <changelist>-SNAPSHOT</changelist>
     <jenkins.version>2.73.3</jenkins.version>
     <java.level>8</java.level>
