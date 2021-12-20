@@ -101,7 +101,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
         this.accessKey = Util.fixNull(accessKey);
         this.secretKey = Secret.fromString(secretKey);
         this.iamRoleArn = Util.fixNull(iamRoleArn);
-        this.iamExternalId = Util.fixNull(iamExternalId);
+        this.iamExternalId = Util.fixEmpty(iamExternalId);
         this.iamMfaSerialNumber = Util.fixNull(iamMfaSerialNumber);
     }
 
