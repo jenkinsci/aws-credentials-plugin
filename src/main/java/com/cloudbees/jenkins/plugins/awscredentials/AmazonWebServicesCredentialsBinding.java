@@ -60,12 +60,14 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
     public final static String DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME = "AWS_ACCESS_KEY_ID";
     private final static String DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME = "AWS_SECRET_ACCESS_KEY";
-    private final static String SESSION_TOKEN_VARIABLE_NAME = "AWS_SESSION_TOKEN";
+    private final static String DEFAULT_SESSION_TOKEN_VARIABLE_NAME = "AWS_SESSION_TOKEN";
 
     @NonNull
     private final String accessKeyVariable;
     @NonNull
     private final String secretKeyVariable;
+    @NonNull
+    private final String secretTokenVariable;
 
     private String roleArn;
     private String roleSessionName;
@@ -75,13 +77,25 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
      *
      * @param accessKeyVariable if {@code null}, {@value DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME} will be used.
      * @param secretKeyVariable if {@code null}, {@value DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME} will be used.
+     * @param sessionTokenVariable if {@code null}, {@value DEFAULT_SESSION_TOKEN_VARIABLE_NAME} will be used.
      * @param credentialsId identifier which should be referenced when accessing the credentials from a job/pipeline.
      */
     @DataBoundConstructor
-    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId) {
+    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, @Nullable String sessionTokenVariable, String credentialsId) {
         super(credentialsId);
         this.accessKeyVariable = StringUtils.defaultIfBlank(accessKeyVariable, DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME);
         this.secretKeyVariable = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME);
+        this.sessionTokenVariable = StringUtils.defaultIfBlank(sessionTokenVariable, DEFAULT_SESSION_TOKEN_VARIABLE_NAME);
+    }
+
+    /**
+     *
+     * @param accessKeyVariable if {@code null}, {@value DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME} will be used.
+     * @param secretKeyVariable if {@code null}, {@value DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME} will be used.
+     * @param credentialsId identifier which should be referenced when accessing the credentials from a job/pipeline.
+     */
+    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId) {
+        this(accessKeyVariable, secretKeyVariable, DEFAULT_SESSION_TOKEN_VARIABLE_NAME, credentialsId);
     }
 
     @NonNull
@@ -92,6 +106,11 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @NonNull
     public String getSecretKeyVariable() {
         return secretKeyVariable;
+    }
+
+    @NonNull
+    public String getSessionTokenVariable() {
+        return sessionTokenVariable;
     }
 
     @DataBoundSetter
@@ -129,7 +148,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
         // If role has been assumed, STS requires AWS_SESSION_TOKEN variable set too.
         if(credentials instanceof AWSSessionCredentials) {
-            m.put(SESSION_TOKEN_VARIABLE_NAME, ((AWSSessionCredentials) credentials).getSessionToken());
+            m.put(sessionTokenVariable, ((AWSSessionCredentials) credentials).getSessionToken());
         }
         return new MultiEnvironment(m);
     }
@@ -153,7 +172,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
     @Override
     public Set<String> variables() {
-        return new HashSet<String>(Arrays.asList(accessKeyVariable, secretKeyVariable, SESSION_TOKEN_VARIABLE_NAME));
+        return new HashSet<String>(Arrays.asList(accessKeyVariable, secretKeyVariable, sessionTokenVariable));
     }
 
     @Symbol("aws")
