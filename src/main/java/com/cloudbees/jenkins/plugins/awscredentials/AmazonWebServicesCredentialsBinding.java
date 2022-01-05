@@ -67,7 +67,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @NonNull
     private final String secretKeyVariable;
     @NonNull
-    private final String secretTokenVariable;
+    private final String sessionTokenVariable;
 
     private String roleArn;
     private String roleSessionName;
