@@ -1,2 +1,1 @@
 _extends: .github
-tag-template: aws-credentials-$NEXT_MINOR_VERSION
