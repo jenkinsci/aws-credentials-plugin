@@ -37,7 +37,7 @@
   <version>${revision}${changelist}</version>
   <packaging>hpi</packaging>
 
-  <name>CloudBees AWS Credentials Plugin</name>
+  <name>AWS Credentials Plugin</name>
   <url>https://github.com/jenkinsci/aws-credentials-plugin</url>
   <licenses>
     <license>
