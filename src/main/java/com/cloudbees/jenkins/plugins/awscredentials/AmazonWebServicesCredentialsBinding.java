@@ -102,7 +102,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     }
 
     @DataBoundSetter
-    public void setSessionTokenVariable() {
+    public void setSessionTokenVariable(String sessionTokenVariable) {
         this.sessionTokenVariable = StringUtils.defaultIfBlank(sessionTokenVariable, DEFAULT_SESSION_TOKEN_VARIABLE_NAME);
     }
 
