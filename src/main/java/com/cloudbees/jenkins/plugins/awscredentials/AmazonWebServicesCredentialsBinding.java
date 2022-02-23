@@ -79,8 +79,11 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
      * @param secretKeyVariable if {@code null}, {@value DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME} will be used.
      * @param credentialsId identifier which should be referenced when accessing the credentials from a job/pipeline.
      */
+    @DataBoundConstructor
     public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId) {
-        this(accessKeyVariable, secretKeyVariable, DEFAULT_SESSION_TOKEN_VARIABLE_NAME, credentialsId);
+        super(credentialsId);
+        this.accessKeyVariable = StringUtils.defaultIfBlank(accessKeyVariable, DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME);
+        this.secretKeyVariable = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME);
     }
 
     @NonNull
