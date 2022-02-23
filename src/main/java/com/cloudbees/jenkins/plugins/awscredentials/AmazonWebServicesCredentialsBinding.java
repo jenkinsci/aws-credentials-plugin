@@ -67,7 +67,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @NonNull
     private final String secretKeyVariable;
     @NonNull
-    private final String sessionTokenVariable;
+    private final String sessionTokenVariable = DEFAULT_SESSION_TOKEN_VARIABLE_NAME;
 
     private String roleArn;
     private String roleSessionName;
@@ -111,6 +111,11 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @NonNull
     public String getSessionTokenVariable() {
         return sessionTokenVariable;
+    }
+
+    @DataBoundSetter
+    public void setSessionTokenVariable() {
+        this.sessionTokenVariable = StringUtils.defaultIfBlank(sessionTokenVariable, DEFAULT_SESSION_TOKEN_VARIABLE_NAME);
     }
 
     @DataBoundSetter
