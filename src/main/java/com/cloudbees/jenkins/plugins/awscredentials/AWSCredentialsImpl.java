@@ -220,7 +220,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
                                                @QueryParameter("iamMfaToken") final String iamMfaToken,
                                                @QueryParameter("stsTokenDuration") final Integer stsTokenDuration,
                                                @QueryParameter final String secretKey) {
-            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
                 // for security reasons, do not perform any check if the user is not an admin
                 return FormValidation.ok();
             }
