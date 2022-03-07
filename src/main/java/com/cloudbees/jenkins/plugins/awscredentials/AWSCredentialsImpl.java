@@ -56,6 +56,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 import java.net.HttpURLConnection;
 import java.util.logging.Level;
@@ -212,12 +213,17 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials impleme
 
         public static final Integer DEFAULT_STS_TOKEN_DURATION = STS_CREDENTIALS_DURATION_SECONDS;
 
+        @POST
         public FormValidation doCheckSecretKey(@QueryParameter("accessKey") final String accessKey,
                                                @QueryParameter("iamRoleArn") final String iamRoleArn,
                                                @QueryParameter("iamMfaSerialNumber") final String iamMfaSerialNumber,
                                                @QueryParameter("iamMfaToken") final String iamMfaToken,
                                                @QueryParameter("stsTokenDuration") final Integer stsTokenDuration,
                                                @QueryParameter final String secretKey) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                // for security reasons, do not perform any check if the user is not an admin
+                return FormValidation.ok();
+            }
             if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey)) {
                 return FormValidation.ok();
             }
