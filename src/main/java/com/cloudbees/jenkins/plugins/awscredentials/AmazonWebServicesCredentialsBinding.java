@@ -67,6 +67,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @NonNull
     private final String secretKeyVariable;
 
+    private String mfaToken;
     private String roleArn;
     private String roleSessionName;
     private int roleSessionDurationSeconds;
@@ -92,6 +93,11 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @NonNull
     public String getSecretKeyVariable() {
         return secretKeyVariable;
+    }
+
+    @DataBoundSetter
+    public void setMfaToken(String mfaToken) {
+        this.mfaToken = mfaToken;
     }
 
     @DataBoundSetter
@@ -121,7 +127,13 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
             provider = this.assumeRoleProvider(provider);
         }
 
-        AWSCredentials credentials = provider.getCredentials();
+        AWSCredentials credentials;
+        if (!StringUtils.isEmpty(this.mfaToken)) {
+            AmazonWebServicesCredentials awsProvider = (AmazonWebServicesCredentials) provider;
+            credentials = awsProvider.getCredentials(this.mfaToken);
+        } else {
+            credentials = provider.getCredentials();
+        }
 
         Map<String,String> m = new HashMap<String,String>();
         m.put(accessKeyVariable, credentials.getAWSAccessKeyId());
