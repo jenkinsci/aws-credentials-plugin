@@ -62,7 +62,7 @@ import java.net.HttpURLConnection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials implements AmazonWebServicesCredentials {
+public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
     private static final long serialVersionUID = -3167989896315282034L;
 
