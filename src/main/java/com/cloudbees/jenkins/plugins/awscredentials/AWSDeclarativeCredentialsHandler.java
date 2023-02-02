@@ -28,22 +28,23 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import org.jenkinsci.plugins.variant.OptionalExtension;
 import org.jenkinsci.plugins.pipeline.modeldefinition.model.CredentialsBindingHandler;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+
 @OptionalExtension(requirePlugins = "pipeline-model-extensions")
 public class AWSDeclarativeCredentialsHandler extends CredentialsBindingHandler<AmazonWebServicesCredentials> {
 
-    @Nonnull
+    @NonNull
     @Override
     public Class<? extends StandardCredentials> type() {
         return AmazonWebServicesCredentials.class;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public List<Map<String, Object>> getWithCredentialsParameters(String credentialsId) {
         Map<String, Object> map = new HashMap<>();
