@@ -1,4 +1,4 @@
-# Cloudbees AWS Credentials Plugin
+# AWS Credentials Plugin
 
 Allows storing Amazon IAM credentials within the Jenkins Credentials
 API.
