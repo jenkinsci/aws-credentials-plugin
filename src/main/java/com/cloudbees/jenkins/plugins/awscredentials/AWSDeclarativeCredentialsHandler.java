@@ -51,6 +51,7 @@ public class AWSDeclarativeCredentialsHandler extends CredentialsBindingHandler<
         map.put("$class", AmazonWebServicesCredentialsBinding.class.getName());
         map.put("keyIdVariable", new EnvVarResolver("%s_AWS_KEY_ID"));
         map.put("secretVariable", new EnvVarResolver("%s_AWS_SECRET"));
+        map.put("sessionTokenVariable", new EnvVarResolver("%s_AWS_SESSION_TOKEN"));
         map.put("credentialsId", credentialsId);
         return Collections.singletonList(map);
     }
