@@ -211,9 +211,9 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
         return accessKey + ":" + iamRoleArn;
     }
 
-    /*package*/ static AWSSecurityTokenService buildStsClient(AWSCredentialsProvider provider) {
+    /*package*/ static AWSSecurityTokenService buildStsClient(AWSCredentialsProvider provider, String awsRegion) {
         // Check for available region from the SDK, otherwise specify default
-        String clientRegion = determineClientRegion();
+        String clientRegion = StringUtils.defaultIfBlank(awsRegion, determineClientRegion());
 
         AWSSecurityTokenServiceClientBuilder builder = AWSSecurityTokenServiceClientBuilder.standard()
                         .withRegion(clientRegion)

@@ -65,6 +65,8 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     private final String accessKeyVariable;
     @NonNull
     private final String secretKeyVariable;
+    @NonNull
+    private final String awsRegion;
 
     private String roleArn;
     private String roleSessionName;
@@ -75,12 +77,14 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
      * @param accessKeyVariable if {@code null}, {@value DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME} will be used.
      * @param secretKeyVariable if {@code null}, {@value DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME} will be used.
      * @param credentialsId identifier which should be referenced when accessing the credentials from a job/pipeline.
+     * @param awsRegion region used to authenticate with sts.
      */
     @DataBoundConstructor
-    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId) {
+    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId,@Nullable String awsRegion) {
         super(credentialsId);
         this.accessKeyVariable = StringUtils.defaultIfBlank(accessKeyVariable, DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME);
         this.secretKeyVariable = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME);
+        this.awsRegion = awsRegion;
     }
 
     @NonNull
@@ -135,7 +139,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     }
 
     private AWSSessionCredentialsProvider assumeRoleProvider(AWSCredentialsProvider baseProvider) {
-        AWSSecurityTokenService stsClient = AWSCredentialsImpl.buildStsClient(baseProvider);
+        AWSSecurityTokenService stsClient = AWSCredentialsImpl.buildStsClient(baseProvider, this.awsRegion);
 
         String roleSessionName = StringUtils.defaultIfBlank(this.roleSessionName, "Jenkins");
 
