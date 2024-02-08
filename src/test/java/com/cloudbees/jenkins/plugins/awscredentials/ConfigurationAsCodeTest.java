@@ -1,5 +1,6 @@
 package com.cloudbees.jenkins.plugins.awscredentials;
 
+import com.cloudbees.jenkins.plugins.awscredentials.config.AmazonWebServicesCredentialsConfiguration;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
@@ -8,8 +9,7 @@ import hudson.security.ACL;
 import io.jenkins.plugins.casc.misc.RoundTripAbstractTest;
 import org.jvnet.hudson.test.RestartableJenkinsRule;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class ConfigurationAsCodeTest extends RoundTripAbstractTest {
 
@@ -28,6 +28,9 @@ public class ConfigurationAsCodeTest extends RoundTripAbstractTest {
         assertEquals(credentials.getId(), "aws-credentials-casc");
         assertEquals(credentials.getScope(), CredentialsScope.GLOBAL);
         assertEquals(credentials.getSecretKey().getPlainText(), "bar");
+
+        AmazonWebServicesCredentialsConfiguration config = AmazonWebServicesCredentialsConfiguration.get();
+        assertFalse(config.isValidateAgainstAWS());
     }
 
     @Override
