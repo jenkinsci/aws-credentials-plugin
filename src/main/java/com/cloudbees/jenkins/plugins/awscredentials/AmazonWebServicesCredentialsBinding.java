@@ -59,6 +59,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
     public final static String DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME = "AWS_ACCESS_KEY_ID";
     private final static String DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME = "AWS_SECRET_ACCESS_KEY";
+    private final static String DEFAULT_IAM_ROLE_REGION_VARIABLE_NAME = "AWS_IAM_ROLE_REGION";
     private final static String SESSION_TOKEN_VARIABLE_NAME = "AWS_SESSION_TOKEN";
 
     @NonNull
@@ -84,7 +85,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
         super(credentialsId);
         this.accessKeyVariable = StringUtils.defaultIfBlank(accessKeyVariable, DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME);
         this.secretKeyVariable = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME);
-        this.iamRoleRegion = iamRoleRegion;
+        this.iamRoleRegion = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_IAM_ROLE_REGION_VARIABLE_NAME);
     }
 
     @NonNull
