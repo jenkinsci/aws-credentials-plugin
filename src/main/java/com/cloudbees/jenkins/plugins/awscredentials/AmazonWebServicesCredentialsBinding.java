@@ -66,7 +66,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @NonNull
     private final String secretKeyVariable;
     @NonNull
-    private final String awsRegion;
+    private final String iamRoleRegion;
 
     private String roleArn;
     private String roleSessionName;
@@ -77,14 +77,14 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
      * @param accessKeyVariable if {@code null}, {@value DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME} will be used.
      * @param secretKeyVariable if {@code null}, {@value DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME} will be used.
      * @param credentialsId identifier which should be referenced when accessing the credentials from a job/pipeline.
-     * @param awsRegion region used to authenticate with sts.
+     * @param iamRoleRegion region used to authenticate with sts.
      */
     @DataBoundConstructor
-    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId,@Nullable String awsRegion) {
+    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId,@Nullable String iamRoleRegion) {
         super(credentialsId);
         this.accessKeyVariable = StringUtils.defaultIfBlank(accessKeyVariable, DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME);
         this.secretKeyVariable = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME);
-        this.awsRegion = awsRegion;
+        this.iamRoleRegion = iamRoleRegion;
     }
 
     @NonNull
@@ -139,7 +139,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     }
 
     private AWSSessionCredentialsProvider assumeRoleProvider(AWSCredentialsProvider baseProvider) {
-        AWSSecurityTokenService stsClient = AWSCredentialsImpl.buildStsClient(baseProvider, this.awsRegion);
+        AWSSecurityTokenService stsClient = AWSCredentialsImpl.buildStsClient(baseProvider, this.iamRoleRegion);
 
         String roleSessionName = StringUtils.defaultIfBlank(this.roleSessionName, "Jenkins");
 
