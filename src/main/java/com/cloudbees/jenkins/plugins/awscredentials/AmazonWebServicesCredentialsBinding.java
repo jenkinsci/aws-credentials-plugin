@@ -93,6 +93,20 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
         return secretKeyVariable;
     }
 
+    @Nullable
+    public String getRoleArn() {
+        return roleArn;
+    }
+
+    @Nullable
+    public String getRoleSessionName() {
+        return roleSessionName;
+    }
+
+    public int getRoleSessionDurationSeconds() {
+        return roleSessionDurationSeconds;
+    }
+
     @DataBoundSetter
     public void setRoleArn(String roleArn) {
         this.roleArn = roleArn;
