@@ -50,6 +50,7 @@ import hudson.Extension;
 import hudson.ProxyConfiguration;
 import hudson.Util;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
@@ -69,6 +70,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
     private static final Logger LOGGER = Logger.getLogger(BaseAmazonWebServicesCredentials.class.getName());
 
     public static final int STS_CREDENTIALS_DURATION_SECONDS = 3600;
+    public static final String IAM_ROLE_REGION = "us-east-1";
 
     private final String accessKey;
 
@@ -77,6 +79,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
     private final String iamRoleArn;
     private final String iamExternalId;
     private final String iamMfaSerialNumber;
+    private final String iamRoleRegion;
 
     private volatile Integer stsTokenDuration;
 
@@ -93,17 +96,26 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
         this(scope, id, accessKey, secretKey, description, iamRoleArn, iamMfaSerialNumber, null);
     }
 
-    @DataBoundConstructor
+    // Old data bound constructor. It is maintained to keep binary compatibility with clients that were using it directly.
     public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
                               @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description,
                               @CheckForNull String iamRoleArn, @CheckForNull String iamMfaSerialNumber,
                               String iamExternalId) {
+        this(scope, id, accessKey, secretKey, description, iamRoleArn, iamMfaSerialNumber, iamExternalId, null);
+    }
+
+    @DataBoundConstructor
+    public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
+                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description,
+                              @CheckForNull String iamRoleArn, @CheckForNull String iamMfaSerialNumber,
+                              String iamExternalId, String iamRoleRegion) {
         super(scope, id, description);
         this.accessKey = Util.fixNull(accessKey);
         this.secretKey = Secret.fromString(secretKey);
         this.iamRoleArn = Util.fixNull(iamRoleArn);
         this.iamExternalId = Util.fixNull(iamExternalId);
         this.iamMfaSerialNumber = Util.fixNull(iamMfaSerialNumber);
+        this.iamRoleRegion = Util.fixNull(iamRoleRegion);
     }
 
     public String getAccessKey() {
@@ -124,6 +136,10 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
     public String getIamMfaSerialNumber() {
         return iamMfaSerialNumber;
+    }
+
+    public String getIamRoleRegion() {
+        return iamRoleRegion;
     }
 
     @NonNull
@@ -154,7 +170,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                baseProvider = new AWSStaticCredentialsProvider(initialCredentials);
             }
 
-            AWSSecurityTokenService client = buildStsClient(baseProvider);
+            AWSSecurityTokenService client = buildStsClient(baseProvider, this.iamRoleRegion);
 
             AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn, iamExternalId)
                     .withDurationSeconds(this.getStsTokenDuration());
@@ -211,9 +227,9 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
         return accessKey + ":" + iamRoleArn;
     }
 
-    /*package*/ static AWSSecurityTokenService buildStsClient(AWSCredentialsProvider provider) {
+    /*package*/ static AWSSecurityTokenService buildStsClient(AWSCredentialsProvider provider, String iamRoleRegion) {
         // Check for available region from the SDK, otherwise specify default
-        String clientRegion = determineClientRegion();
+        String clientRegion = StringUtils.defaultIfBlank(iamRoleRegion, determineClientRegion());
 
         AWSSecurityTokenServiceClientBuilder builder = AWSSecurityTokenServiceClientBuilder.standard()
                         .withRegion(clientRegion)
@@ -280,6 +296,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
         }
 
         public static final Integer DEFAULT_STS_TOKEN_DURATION = STS_CREDENTIALS_DURATION_SECONDS;
+        public static final String DEFAULT_IAM_ROLE_REGION = IAM_ROLE_REGION;
 
         @POST
         public FormValidation doCheckSecretKey(@QueryParameter("accessKey") final String accessKey,
@@ -288,6 +305,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                                                @QueryParameter("iamMfaSerialNumber") final String iamMfaSerialNumber,
                                                @QueryParameter("iamMfaToken") final String iamMfaToken,
                                                @QueryParameter("stsTokenDuration") final Integer stsTokenDuration,
+                                               @QueryParameter("iamRoleRegion") final String iamRoleRegion,
                                                @QueryParameter final String secretKey) {
             if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 // for security reasons, do not perform any check if the user is not an admin
