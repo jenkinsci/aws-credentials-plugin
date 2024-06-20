@@ -11,3 +11,7 @@ credentials:
               id: "aws-credentials-casc"
               scope: GLOBAL
               secretKey: "bar"
+
+unclassified:
+  amazonWebServicesCredentialsConfiguration:
+    validateAgainstAWS: false

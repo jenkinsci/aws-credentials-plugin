@@ -42,6 +42,7 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+import com.cloudbees.jenkins.plugins.awscredentials.config.AmazonWebServicesCredentialsConfiguration;
 import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
@@ -332,6 +333,10 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                     LOGGER.log(Level.WARNING, "Unable to assume role [" + iamRoleArn + "] with request [" + assumeRequest + "]", e);
                     return FormValidation.error(Messages.AWSCredentialsImpl_NotAbleToAssumeRole() + " Check the Jenkins log for more details");
                 }
+            }
+
+            if(!AmazonWebServicesCredentialsConfiguration.get().isValidateAgainstAWS()) {
+                return FormValidation.ok();
             }
 
             AmazonEC2 ec2 = new AmazonEC2Client(awsCredentials, getClientConfiguration());
