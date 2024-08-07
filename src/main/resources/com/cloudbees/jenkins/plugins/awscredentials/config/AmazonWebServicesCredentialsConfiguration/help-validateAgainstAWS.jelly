@@ -1,0 +1,8 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core">
+    <div>
+        <p>
+            To validate your credentials a request will be sent to AWS.
+        </p>
+    </div>
+</j:jelly>
