@@ -4,17 +4,15 @@ import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.AbstractIdCredentialsListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
+import java.util.Collections;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.Collections;
-
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.Nullable;
 
 /**
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
@@ -29,8 +27,8 @@ public class AWSCredentialsHelper {
             return null;
         }
         return (AmazonWebServicesCredentials) CredentialsMatchers.firstOrNull(
-                CredentialsProvider.lookupCredentials(AmazonWebServicesCredentials.class, context,
-                        ACL.SYSTEM, Collections.EMPTY_LIST),
+                CredentialsProvider.lookupCredentials(
+                        AmazonWebServicesCredentials.class, context, ACL.SYSTEM, Collections.EMPTY_LIST),
                 CredentialsMatchers.withId(credentialsId));
     }
 
@@ -46,11 +44,9 @@ public class AWSCredentialsHelper {
         AbstractIdCredentialsListBoxModel result = new StandardListBoxModel().includeEmptyValue();
         if (hasPermission(context)) {
             result = result.withMatching(
-                            CredentialsMatchers.always(),
-                            CredentialsProvider.lookupCredentials(AmazonWebServicesCredentials.class,
-                                    context,
-                                    ACL.SYSTEM,
-                                    Collections.EMPTY_LIST));
+                    CredentialsMatchers.always(),
+                    CredentialsProvider.lookupCredentials(
+                            AmazonWebServicesCredentials.class, context, ACL.SYSTEM, Collections.EMPTY_LIST));
         }
         return result;
     }

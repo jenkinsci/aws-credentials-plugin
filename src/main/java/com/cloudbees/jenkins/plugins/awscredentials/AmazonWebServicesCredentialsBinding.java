@@ -26,8 +26,8 @@
 package com.cloudbees.jenkins.plugins.awscredentials;
 
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSSessionCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSSessionCredentials;
 import com.amazonaws.auth.AWSSessionCredentialsProvider;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
@@ -38,31 +38,31 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
-import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
-import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
+import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
 public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebServicesCredentials> {
 
-    public final static String DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME = "AWS_ACCESS_KEY_ID";
-    private final static String DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME = "AWS_SECRET_ACCESS_KEY";
-    private final static String SESSION_TOKEN_VARIABLE_NAME = "AWS_SESSION_TOKEN";
+    public static final String DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME = "AWS_ACCESS_KEY_ID";
+    private static final String DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME = "AWS_SECRET_ACCESS_KEY";
+    private static final String SESSION_TOKEN_VARIABLE_NAME = "AWS_SESSION_TOKEN";
 
     @NonNull
     private final String accessKeyVariable;
+
     @NonNull
     private final String secretKeyVariable;
 
@@ -77,7 +77,8 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
      * @param credentialsId identifier which should be referenced when accessing the credentials from a job/pipeline.
      */
     @DataBoundConstructor
-    public AmazonWebServicesCredentialsBinding(@Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId) {
+    public AmazonWebServicesCredentialsBinding(
+            @Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId) {
         super(credentialsId);
         this.accessKeyVariable = StringUtils.defaultIfBlank(accessKeyVariable, DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME);
         this.secretKeyVariable = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME);
@@ -128,8 +129,8 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     }
 
     @Override
-    public MultiEnvironment bind(@NonNull Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException,
-                                                                                                                                InterruptedException {
+    public MultiEnvironment bind(@NonNull Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
+            throws IOException, InterruptedException {
         AWSCredentialsProvider provider = getCredentials(build);
         if (!StringUtils.isEmpty(this.roleArn)) {
             provider = this.assumeRoleProvider(provider);
@@ -137,12 +138,12 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
         AWSCredentials credentials = provider.getCredentials();
 
-        Map<String,String> m = new HashMap<String,String>();
+        Map<String, String> m = new HashMap<String, String>();
         m.put(accessKeyVariable, credentials.getAWSAccessKeyId());
         m.put(secretKeyVariable, credentials.getAWSSecretKey());
 
         // If role has been assumed, STS requires AWS_SESSION_TOKEN variable set too.
-        if(credentials instanceof AWSSessionCredentials) {
+        if (credentials instanceof AWSSessionCredentials) {
             m.put(SESSION_TOKEN_VARIABLE_NAME, ((AWSSessionCredentials) credentials).getSessionToken());
         }
         return new MultiEnvironment(m);
@@ -155,11 +156,11 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
         STSAssumeRoleSessionCredentialsProvider.Builder assumeRoleProviderBuilder =
                 new STSAssumeRoleSessionCredentialsProvider.Builder(this.roleArn, roleSessionName)
-                .withStsClient(stsClient);
+                        .withStsClient(stsClient);
 
         if (this.roleSessionDurationSeconds > 0) {
-            assumeRoleProviderBuilder = assumeRoleProviderBuilder
-                .withRoleSessionDurationSeconds(this.roleSessionDurationSeconds);
+            assumeRoleProviderBuilder =
+                    assumeRoleProviderBuilder.withRoleSessionDurationSeconds(this.roleSessionDurationSeconds);
         }
 
         return assumeRoleProviderBuilder.build();
@@ -174,17 +175,19 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @Extension
     public static class DescriptorImpl extends BindingDescriptor<AmazonWebServicesCredentials> {
 
-        @Override protected Class<AmazonWebServicesCredentials> type() {
+        @Override
+        protected Class<AmazonWebServicesCredentials> type() {
             return AmazonWebServicesCredentials.class;
         }
 
-        @Override public String getDisplayName() {
+        @Override
+        public String getDisplayName() {
             return "AWS access key and secret";
         }
 
-        @Override public boolean requiresWorkspace() {
+        @Override
+        public boolean requiresWorkspace() {
             return false;
         }
     }
-
 }
