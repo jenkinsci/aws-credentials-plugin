@@ -36,8 +36,7 @@ import edu.umd.cs.findbugs.annotations.CheckForNull;
 public abstract class BaseAmazonWebServicesCredentials extends BaseStandardCredentials
         implements AmazonWebServicesCredentials {
     public BaseAmazonWebServicesCredentials(
-            @CheckForNull CredentialsScope scope,
-            @CheckForNull String id, @CheckForNull String description) {
+            @CheckForNull CredentialsScope scope, @CheckForNull String id, @CheckForNull String description) {
         super(scope, id, description);
     }
 }

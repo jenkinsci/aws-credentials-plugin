@@ -51,16 +51,15 @@ import hudson.ProxyConfiguration;
 import hudson.Util;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
+import java.net.HttpURLConnection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
-
-import java.net.HttpURLConnection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
@@ -80,24 +79,40 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
     private volatile Integer stsTokenDuration;
 
-    // Old data bound constructor. It is maintained to keep binary compatibility with clients that were using it directly.
-    public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
-                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description) {
+    // Old data bound constructor. It is maintained to keep binary compatibility with clients that were using it
+    // directly.
+    public AWSCredentialsImpl(
+            @CheckForNull CredentialsScope scope,
+            @CheckForNull String id,
+            @CheckForNull String accessKey,
+            @CheckForNull String secretKey,
+            @CheckForNull String description) {
         this(scope, id, accessKey, secretKey, description, null, null, null);
     }
 
-    // Old data bound constructor. It is maintained to keep binary compatibility with clients that were using it directly.
-    public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
-                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description,
-                              @CheckForNull String iamRoleArn, @CheckForNull String iamMfaSerialNumber) {
+    // Old data bound constructor. It is maintained to keep binary compatibility with clients that were using it
+    // directly.
+    public AWSCredentialsImpl(
+            @CheckForNull CredentialsScope scope,
+            @CheckForNull String id,
+            @CheckForNull String accessKey,
+            @CheckForNull String secretKey,
+            @CheckForNull String description,
+            @CheckForNull String iamRoleArn,
+            @CheckForNull String iamMfaSerialNumber) {
         this(scope, id, accessKey, secretKey, description, iamRoleArn, iamMfaSerialNumber, null);
     }
 
     @DataBoundConstructor
-    public AWSCredentialsImpl(@CheckForNull CredentialsScope scope, @CheckForNull String id,
-                              @CheckForNull String accessKey, @CheckForNull String secretKey, @CheckForNull String description,
-                              @CheckForNull String iamRoleArn, @CheckForNull String iamMfaSerialNumber,
-                              String iamExternalId) {
+    public AWSCredentialsImpl(
+            @CheckForNull CredentialsScope scope,
+            @CheckForNull String id,
+            @CheckForNull String accessKey,
+            @CheckForNull String secretKey,
+            @CheckForNull String description,
+            @CheckForNull String iamRoleArn,
+            @CheckForNull String iamMfaSerialNumber,
+            String iamExternalId) {
         super(scope, id, description);
         this.accessKey = Util.fixNull(accessKey);
         this.secretKey = Secret.fromString(secretKey);
@@ -133,13 +148,17 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
     @DataBoundSetter
     public void setStsTokenDuration(Integer stsTokenDuration) {
-        this.stsTokenDuration = stsTokenDuration == null || stsTokenDuration.equals(DescriptorImpl.DEFAULT_STS_TOKEN_DURATION) ? null : stsTokenDuration;
+        this.stsTokenDuration =
+                stsTokenDuration == null || stsTokenDuration.equals(DescriptorImpl.DEFAULT_STS_TOKEN_DURATION)
+                        ? null
+                        : stsTokenDuration;
     }
 
     public boolean requiresToken() {
         return !StringUtils.isBlank(iamMfaSerialNumber);
     }
 
+    @Override
     public AWSCredentials getCredentials() {
         AWSCredentials initialCredentials = new BasicAWSCredentials(accessKey, secretKey.getPlainText());
 
@@ -151,13 +170,13 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
             if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText())) {
                 baseProvider = null;
             } else {
-               baseProvider = new AWSStaticCredentialsProvider(initialCredentials);
+                baseProvider = new AWSStaticCredentialsProvider(initialCredentials);
             }
 
             AWSSecurityTokenService client = buildStsClient(baseProvider);
 
-            AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn, iamExternalId)
-                    .withDurationSeconds(this.getStsTokenDuration());
+            AssumeRoleRequest assumeRequest =
+                    createAssumeRoleRequest(iamRoleArn, iamExternalId).withDurationSeconds(this.getStsTokenDuration());
 
             AssumeRoleResult assumeResult = client.assumeRole(assumeRequest);
 
@@ -183,6 +202,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
         return clientRegion;
     }
 
+    @Override
     public AWSCredentials getCredentials(String mfaToken) {
         AWSCredentials initialCredentials = new BasicAWSCredentials(accessKey, secretKey.getPlainText());
 
@@ -200,10 +220,12 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                 assumeResult.getCredentials().getSessionToken());
     }
 
+    @Override
     public void refresh() {
         // no-op
     }
 
+    @Override
     public String getDisplayName() {
         if (StringUtils.isBlank(iamRoleArn)) {
             return accessKey;
@@ -216,8 +238,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
         String clientRegion = determineClientRegion();
 
         AWSSecurityTokenServiceClientBuilder builder = AWSSecurityTokenServiceClientBuilder.standard()
-                        .withRegion(clientRegion)
-                        .withClientConfiguration(getClientConfiguration());
+                .withRegion(clientRegion)
+                .withClientConfiguration(getClientConfiguration());
 
         if (provider != null) {
             builder = builder.withCredentials(provider);
@@ -227,13 +249,12 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
     }
 
     private static AssumeRoleRequest createAssumeRoleRequest(String iamRoleArn, String iamExternalId) {
-        AssumeRoleRequest retval = new AssumeRoleRequest()
-                .withRoleArn(iamRoleArn)
-                .withRoleSessionName("Jenkins");
-       if (iamExternalId != null && !iamExternalId.isEmpty()) {
-           return retval.withExternalId(iamExternalId);
-       }
-       return retval;
+        AssumeRoleRequest retval =
+                new AssumeRoleRequest().withRoleArn(iamRoleArn).withRoleSessionName("Jenkins");
+        if (iamExternalId != null && !iamExternalId.isEmpty()) {
+            return retval.withExternalId(iamExternalId);
+        }
+        return retval;
     }
 
     /**
@@ -282,13 +303,14 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
         public static final Integer DEFAULT_STS_TOKEN_DURATION = STS_CREDENTIALS_DURATION_SECONDS;
 
         @POST
-        public FormValidation doCheckSecretKey(@QueryParameter("accessKey") final String accessKey,
-                                               @QueryParameter("iamRoleArn") final String iamRoleArn,
-                                               @QueryParameter("iamExternalId") final String iamExternalId,
-                                               @QueryParameter("iamMfaSerialNumber") final String iamMfaSerialNumber,
-                                               @QueryParameter("iamMfaToken") final String iamMfaToken,
-                                               @QueryParameter("stsTokenDuration") final Integer stsTokenDuration,
-                                               @QueryParameter final String secretKey) {
+        public FormValidation doCheckSecretKey(
+                @QueryParameter("accessKey") final String accessKey,
+                @QueryParameter("iamRoleArn") final String iamRoleArn,
+                @QueryParameter("iamExternalId") final String iamExternalId,
+                @QueryParameter("iamMfaSerialNumber") final String iamMfaSerialNumber,
+                @QueryParameter("iamMfaToken") final String iamMfaToken,
+                @QueryParameter("stsTokenDuration") final Integer stsTokenDuration,
+                @QueryParameter final String secretKey) {
             if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 // for security reasons, do not perform any check if the user is not an admin
                 return FormValidation.ok();
@@ -303,21 +325,21 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                 return FormValidation.error(Messages.AWSCredentialsImpl_SpecifySecretAccessKey());
             }
 
-            AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, Secret.fromString(secretKey).getPlainText());
+            AWSCredentials awsCredentials = new BasicAWSCredentials(
+                    accessKey, Secret.fromString(secretKey).getPlainText());
 
             // If iamRoleArn is specified, swap out the credentials.
             if (!StringUtils.isBlank(iamRoleArn)) {
 
-                AssumeRoleRequest assumeRequest = createAssumeRoleRequest(iamRoleArn, iamExternalId)
-                        .withDurationSeconds(stsTokenDuration);
+                AssumeRoleRequest assumeRequest =
+                        createAssumeRoleRequest(iamRoleArn, iamExternalId).withDurationSeconds(stsTokenDuration);
 
                 if (!StringUtils.isBlank(iamMfaSerialNumber)) {
                     if (StringUtils.isBlank(iamMfaToken)) {
                         return FormValidation.error(Messages.AWSCredentialsImpl_SpecifyMFAToken());
                     }
-                    assumeRequest = assumeRequest
-                            .withSerialNumber(iamMfaSerialNumber)
-                            .withTokenCode(iamMfaToken);
+                    assumeRequest =
+                            assumeRequest.withSerialNumber(iamMfaSerialNumber).withTokenCode(iamMfaToken);
                 }
 
                 try {
@@ -329,25 +351,31 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                             assumeResult.getCredentials().getSecretAccessKey(),
                             assumeResult.getCredentials().getSessionToken());
                 } catch (RuntimeException e) {
-                    LOGGER.log(Level.WARNING, "Unable to assume role [" + iamRoleArn + "] with request [" + assumeRequest + "]", e);
-                    return FormValidation.error(Messages.AWSCredentialsImpl_NotAbleToAssumeRole() + " Check the Jenkins log for more details");
+                    LOGGER.log(
+                            Level.WARNING,
+                            "Unable to assume role [" + iamRoleArn + "] with request [" + assumeRequest + "]",
+                            e);
+                    return FormValidation.error(Messages.AWSCredentialsImpl_NotAbleToAssumeRole()
+                            + " Check the Jenkins log for more details");
                 }
             }
 
             AmazonEC2 ec2 = new AmazonEC2Client(awsCredentials, getClientConfiguration());
 
-            // TODO better/smarter validation of the credentials instead of verifying the permission on EC2.READ in us-east-1
+            // TODO better/smarter validation of the credentials instead of verifying the permission on EC2.READ in
+            // us-east-1
             String region = "us-east-1";
             try {
                 DescribeAvailabilityZonesResult zonesResult = ec2.describeAvailabilityZones();
-                return FormValidation
-                        .ok(Messages.AWSCredentialsImpl_CredentialsValidWithAccessToNZones(
-                                zonesResult.getAvailabilityZones().size()));
+                return FormValidation.ok(Messages.AWSCredentialsImpl_CredentialsValidWithAccessToNZones(
+                        zonesResult.getAvailabilityZones().size()));
             } catch (AmazonServiceException e) {
                 if (HttpURLConnection.HTTP_UNAUTHORIZED == e.getStatusCode()) {
                     return FormValidation.warning(Messages.AWSCredentialsImpl_CredentialsInValid(e.getMessage()));
                 } else if (HttpURLConnection.HTTP_FORBIDDEN == e.getStatusCode()) {
-                    return FormValidation.ok(Messages.AWSCredentialsImpl_CredentialsValidWithoutAccessToAwsServiceInZone(e.getServiceName(), region, e.getErrorMessage() + " (" + e.getErrorCode() + ")"));
+                    return FormValidation.ok(
+                            Messages.AWSCredentialsImpl_CredentialsValidWithoutAccessToAwsServiceInZone(
+                                    e.getServiceName(), region, e.getErrorMessage() + " (" + e.getErrorCode() + ")"));
                 } else {
                     return FormValidation.error(e.getMessage());
                 }
@@ -355,6 +383,5 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                 return FormValidation.error(e.getMessage());
             }
         }
-
     }
 }

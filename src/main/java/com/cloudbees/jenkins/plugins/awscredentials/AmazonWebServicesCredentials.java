@@ -61,5 +61,4 @@ public interface AmazonWebServicesCredentials extends StandardCredentials, AWSCr
             return c.getDisplayName() + (description != null ? " (" + description + ")" : "");
         }
     }
-
 }
