@@ -25,12 +25,6 @@
 
 package com.cloudbees.jenkins.plugins.awscredentials;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSSessionCredentials;
-import com.amazonaws.auth.AWSSessionCredentialsProvider;
-import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
@@ -50,6 +44,12 @@ import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
 /**
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
@@ -131,39 +131,40 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @Override
     public MultiEnvironment bind(@NonNull Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
             throws IOException, InterruptedException {
-        AWSCredentialsProvider provider = getCredentials(build);
+        AwsCredentialsProvider provider = getCredentials(build);
         if (!StringUtils.isEmpty(this.roleArn)) {
             provider = this.assumeRoleProvider(provider);
         }
 
-        AWSCredentials credentials = provider.getCredentials();
+        AwsCredentials credentials = provider.resolveCredentials();
 
         Map<String, String> m = new HashMap<String, String>();
-        m.put(accessKeyVariable, credentials.getAWSAccessKeyId());
-        m.put(secretKeyVariable, credentials.getAWSSecretKey());
+        m.put(accessKeyVariable, credentials.accessKeyId());
+        m.put(secretKeyVariable, credentials.secretAccessKey());
 
         // If role has been assumed, STS requires AWS_SESSION_TOKEN variable set too.
-        if (credentials instanceof AWSSessionCredentials) {
-            m.put(SESSION_TOKEN_VARIABLE_NAME, ((AWSSessionCredentials) credentials).getSessionToken());
+        if (credentials instanceof AwsSessionCredentials) {
+            m.put(SESSION_TOKEN_VARIABLE_NAME, ((AwsSessionCredentials) credentials).sessionToken());
         }
         return new MultiEnvironment(m);
     }
 
-    private AWSSessionCredentialsProvider assumeRoleProvider(AWSCredentialsProvider baseProvider) {
-        AWSSecurityTokenService stsClient = AWSCredentialsImpl.buildStsClient(baseProvider);
+    private AwsCredentialsProvider assumeRoleProvider(AwsCredentialsProvider baseProvider) {
+        StsClient stsClient = AWSCredentialsImpl.buildStsClient(baseProvider);
 
         String roleSessionName = StringUtils.defaultIfBlank(this.roleSessionName, "Jenkins");
 
-        STSAssumeRoleSessionCredentialsProvider.Builder assumeRoleProviderBuilder =
-                new STSAssumeRoleSessionCredentialsProvider.Builder(this.roleArn, roleSessionName)
-                        .withStsClient(stsClient);
+        AssumeRoleRequest.Builder assumeRoleRequest =
+                AssumeRoleRequest.builder().roleArn(this.roleArn).roleSessionName(roleSessionName);
 
         if (this.roleSessionDurationSeconds > 0) {
-            assumeRoleProviderBuilder =
-                    assumeRoleProviderBuilder.withRoleSessionDurationSeconds(this.roleSessionDurationSeconds);
+            assumeRoleRequest.durationSeconds(this.roleSessionDurationSeconds);
         }
 
-        return assumeRoleProviderBuilder.build();
+        return StsAssumeRoleCredentialsProvider.builder()
+                .stsClient(stsClient)
+                .refreshRequest(assumeRoleRequest.build())
+                .build();
     }
 
     @Override
