@@ -56,7 +56,7 @@
     <changelist>999999-SNAPSHOT</changelist>
     <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
     <jenkins.baseline>2.452</jenkins.baseline>
-    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
+    <jenkins.version>${jenkins.baseline}.4</jenkins.version>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     <spotbugs.effort>Max</spotbugs.effort>
     <spotbugs.threshold>Low</spotbugs.threshold>
@@ -68,7 +68,7 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
-        <version>3193.v330d8248d39e</version>
+        <version>3761.vd922730f0fd2</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -79,14 +79,10 @@
     <dependency>
       <groupId>io.jenkins.plugins.aws-java-sdk2</groupId>
       <artifactId>aws-java-sdk2-ec2</artifactId>
-      <!-- TODO until in BOM -->
-      <version>2.29.21-6.v36d2b_6142774</version>
     </dependency>
     <dependency>
       <groupId>io.jenkins.plugins.aws-java-sdk2</groupId>
       <artifactId>aws-java-sdk2-sts</artifactId>
-      <!-- TODO until in BOM -->
-      <version>2.29.21-6.v36d2b_6142774</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
