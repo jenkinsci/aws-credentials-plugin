@@ -167,17 +167,17 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
     @Override
     public AwsCredentials resolveCredentials() {
-        AwsCredentials initialCredentials = AwsBasicCredentials.create(accessKey, secretKey.getPlainText());
 
         if (StringUtils.isBlank(iamRoleArn)) {
-            return initialCredentials;
+            return AwsBasicCredentials.create(accessKey, secretKey.getPlainText());
         } else {
             AwsCredentialsProvider baseProvider;
             // Handle the case of delegation to instance profile
             if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText())) {
                 baseProvider = null;
             } else {
-                baseProvider = StaticCredentialsProvider.create(initialCredentials);
+                baseProvider = StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(accessKey, secretKey.getPlainText()));
             }
 
             StsClient client = buildStsClient(baseProvider);
