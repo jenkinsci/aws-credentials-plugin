@@ -139,8 +139,10 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
         AwsCredentials credentials = provider.resolveCredentials();
 
         Map<String, String> m = new HashMap<String, String>();
-        m.put(accessKeyVariable, credentials.accessKeyId());
-        m.put(secretKeyVariable, credentials.secretAccessKey());
+        if (credentials != null) {
+            m.put(accessKeyVariable, credentials.accessKeyId());
+            m.put(secretKeyVariable, credentials.secretAccessKey());
+        }
 
         // If role has been assumed, STS requires AWS_SESSION_TOKEN variable set too.
         if (credentials instanceof AwsSessionCredentials) {
