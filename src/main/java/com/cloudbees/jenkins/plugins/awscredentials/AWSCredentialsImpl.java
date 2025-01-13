@@ -169,7 +169,12 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
     public AwsCredentials resolveCredentials() {
 
         if (StringUtils.isBlank(iamRoleArn)) {
-            return AwsBasicCredentials.create(accessKey, secretKey.getPlainText());
+            if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText())) {
+                // AWS SDK v2 does not allow blank accessKey and secretKey
+                return null;
+            } else {
+                return AwsBasicCredentials.create(accessKey, secretKey.getPlainText());
+            }
         } else {
             AwsCredentialsProvider baseProvider;
             // Handle the case of delegation to instance profile
