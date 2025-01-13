@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
@@ -140,11 +139,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
         AwsCredentials credentials = provider.resolveCredentials();
 
         Map<String, String> m = new HashMap<String, String>();
-        if (Objects.isNull(credentials)) {
-            // the empty strings retain functionality present before the AWS SDK migration
-            m.put(accessKeyVariable, "");
-            m.put(secretKeyVariable, "");
-        } else {
+        if (credentials != null) {
             m.put(accessKeyVariable, credentials.accessKeyId());
             m.put(secretKeyVariable, credentials.secretAccessKey());
         }
