@@ -238,7 +238,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
     @Deprecated
     @Override
     public AWSCredentials getCredentials() {
-        return fromAwsCredentials(resolveCredentials());
+        AwsCredentials credentials = resolveCredentials();
+        return credentials != null ? fromAwsCredentials(credentials) : null;
     }
 
     /**
