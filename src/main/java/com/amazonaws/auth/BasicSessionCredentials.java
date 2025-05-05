@@ -1,0 +1,65 @@
+/*
+ * Copyright 2011-2024 Amazon Technologies, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ *    http://aws.amazon.com/apache2.0
+ *
+ * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+ * OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.amazonaws.auth;
+
+/**
+ * Simple session credentials with keys and session token.
+ */
+@Deprecated(forRemoval = true)
+public class BasicSessionCredentials implements AWSSessionCredentials, AccountIdAware, ProviderNameAware {
+
+    private final String awsAccessKey;
+    private final String awsSecretKey;
+    private final String sessionToken;
+    private final String accountId;
+    private final String providerName;
+
+    public BasicSessionCredentials(String awsAccessKey, String awsSecretKey, String sessionToken) {
+        this(awsAccessKey, awsSecretKey, sessionToken, null);
+    }
+
+    public BasicSessionCredentials(String awsAccessKey, String awsSecretKey, String sessionToken, String accountId) {
+        this(awsAccessKey, awsSecretKey, sessionToken, accountId, null);
+    }
+
+    public BasicSessionCredentials(
+            String awsAccessKey, String awsSecretKey, String sessionToken, String accountId, String providerName) {
+        this.awsAccessKey = awsAccessKey;
+        this.awsSecretKey = awsSecretKey;
+        this.sessionToken = sessionToken;
+        this.accountId = accountId;
+        this.providerName = providerName;
+    }
+
+    public String getAWSAccessKeyId() {
+        return awsAccessKey;
+    }
+
+    public String getAWSSecretKey() {
+        return awsSecretKey;
+    }
+
+    public String getSessionToken() {
+        return sessionToken;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public String getProviderName() {
+        return providerName;
+    }
+}
