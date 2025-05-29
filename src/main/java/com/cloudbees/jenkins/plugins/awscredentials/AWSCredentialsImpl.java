@@ -209,7 +209,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
             LOGGER.log(Level.WARNING, "Could not find default region using SDK lookup.", e);
         }
         if (clientRegion == null) {
-            clientRegion = Region.US_WEST_2;
+            clientRegion = Region.US_EAST_1;
         }
         return clientRegion;
     }
@@ -420,14 +420,14 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                 }
             }
 
+            Region region = determineClientRegion();
+            
             Ec2Client ec2 = Ec2Client.builder()
                     .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                     .httpClient(getHttpClient())
+                    .region(region)
                     .build();
 
-            // TODO better/smarter validation of the credentials instead of verifying the permission on EC2.READ in
-            // us-east-1
-            String region = "us-east-1";
             try {
                 DescribeAvailabilityZonesResponse zonesResult = ec2.describeAvailabilityZones();
                 return FormValidation.ok(Messages.AWSCredentialsImpl_CredentialsValidWithAccessToNZones(
