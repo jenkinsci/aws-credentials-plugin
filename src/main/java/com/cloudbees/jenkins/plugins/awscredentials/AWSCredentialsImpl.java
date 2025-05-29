@@ -201,17 +201,13 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
     private static Region determineClientRegion() {
         // Check for available region from the SDK, otherwise specify default
-        Region clientRegion = null;
         AwsRegionProvider sdkRegionLookup = new DefaultAwsRegionProviderChain();
         try {
-            clientRegion = sdkRegionLookup.getRegion();
+            return sdkRegionLookup.getRegion();
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Could not find default region using SDK lookup.", e);
+            return Region.US_EAST_1;
         }
-        if (clientRegion == null) {
-            clientRegion = Region.US_EAST_1;
-        }
-        return clientRegion;
     }
 
     @Override
@@ -421,7 +417,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
             }
 
             Region region = determineClientRegion();
-            
+
             Ec2Client ec2 = Ec2Client.builder()
                     .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                     .httpClient(getHttpClient())
