@@ -45,6 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -349,6 +350,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
     }
 
     @Extension
+    @Symbol("aws")
     public static class DescriptorImpl extends CredentialsDescriptor {
 
         @Override
