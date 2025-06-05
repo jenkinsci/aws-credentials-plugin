@@ -25,10 +25,6 @@
 
 package com.cloudbees.jenkins.plugins.awscredentials;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSSessionCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.BasicSessionCredentials;
 import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
@@ -40,7 +36,6 @@ import hudson.util.FormValidation;
 import hudson.util.Secret;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.model.Jenkins;
@@ -226,57 +221,6 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                 assumeResult.credentials().accessKeyId(),
                 assumeResult.credentials().secretAccessKey(),
                 assumeResult.credentials().sessionToken());
-    }
-
-    /**
-     * @deprecated use {@link #resolveCredentials()}
-     */
-    @Deprecated
-    @Override
-    public AWSCredentials getCredentials() {
-        AwsCredentials credentials = resolveCredentials();
-        return credentials != null ? fromAwsCredentials(credentials) : null;
-    }
-
-    /**
-     * @deprecated use {@link #resolveCredentials(String)}
-     */
-    @Deprecated
-    @Override
-    public AWSCredentials getCredentials(String mfaToken) {
-        return fromAwsCredentials(resolveCredentials(mfaToken));
-    }
-
-    private static AWSCredentials fromAwsCredentials(AwsCredentials awsCredentials) {
-        Objects.requireNonNull(awsCredentials);
-        if (awsCredentials instanceof AwsSessionCredentials) {
-            AwsSessionCredentials awsSessionCredentials = (AwsSessionCredentials) awsCredentials;
-            return fromAwsSessionCredentials(awsSessionCredentials);
-        }
-        return new BasicAWSCredentials(
-                awsCredentials.accessKeyId(),
-                awsCredentials.secretAccessKey(),
-                awsCredentials.accountId().orElse(null),
-                awsCredentials.providerName().orElse(null));
-    }
-
-    private static AWSSessionCredentials fromAwsSessionCredentials(AwsSessionCredentials awsSessionCredentials) {
-        Objects.requireNonNull(awsSessionCredentials);
-        return new BasicSessionCredentials(
-                awsSessionCredentials.accessKeyId(),
-                awsSessionCredentials.secretAccessKey(),
-                awsSessionCredentials.sessionToken(),
-                awsSessionCredentials.accountId().orElse(null),
-                awsSessionCredentials.providerName().orElse(null));
-    }
-
-    /**
-     * @deprecated removed without replacement
-     */
-    @Deprecated
-    @Override
-    public void refresh() {
-        // no-op
     }
 
     @Override

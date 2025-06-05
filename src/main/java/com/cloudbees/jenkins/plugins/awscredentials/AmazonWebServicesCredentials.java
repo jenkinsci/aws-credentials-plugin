@@ -25,8 +25,6 @@
 
 package com.cloudbees.jenkins.plugins.awscredentials;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsNameProvider;
 import com.cloudbees.plugins.credentials.NameWith;
@@ -39,23 +37,15 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 /**
  * A {@link AwsCredentialsProvider} that is bound to the Jenkins {@link Credentials} api.
  *
- * For compatibility reasons, this class also implements {@link AWSCredentialsProvider}.
  */
 @NameWith(value = AmazonWebServicesCredentials.NameProvider.class, priority = 1)
-public interface AmazonWebServicesCredentials
-        extends StandardCredentials, AwsCredentialsProvider, AWSCredentialsProvider {
+public interface AmazonWebServicesCredentials extends StandardCredentials, AwsCredentialsProvider {
     /** Serial UID from 1.16. */
     long serialVersionUID = -8931505925778535681L;
 
     String getDisplayName();
 
     AwsCredentials resolveCredentials(String mfaToken);
-
-    /**
-     * @deprecated use {@link #resolveCredentials(String)}
-     */
-    @Deprecated
-    AWSCredentials getCredentials(String mfaToken);
 
     /**
      * Our name provider.
