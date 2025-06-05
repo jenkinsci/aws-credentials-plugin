@@ -30,4 +30,7 @@ THE SOFTWARE.
   <f:entry title="${%Secret Key Variable}" field="secretKeyVariable">
     <f:textbox default="AWS_SECRET_ACCESS_KEY"/>
   </f:entry>
+  <f:entry title="${%Session Token Variable}" field="sessionTokenVariable">
+    <f:textbox default="AWS_SESSION_TOKEN"/>
+  </f:entry>
 </j:jelly>
