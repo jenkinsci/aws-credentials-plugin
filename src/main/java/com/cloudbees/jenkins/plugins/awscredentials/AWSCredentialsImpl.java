@@ -187,7 +187,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                         AwsBasicCredentials.create(accessKey, secretKey.getPlainText()));
             }
 
-            StsClient client = buildStsClient(baseProvider);
+            String partition = extractPartition(iamRoleArn);
+            StsClient client = buildStsClient(baseProvider, partition);
 
             AssumeRoleRequest.Builder assumeRequest =
                     createAssumeRoleRequest(iamRoleArn, iamExternalId).durationSeconds(this.getStsTokenDuration());
@@ -199,6 +200,15 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                     assumeResult.credentials().secretAccessKey(),
                     assumeResult.credentials().sessionToken());
         }
+    }
+
+    private static Region determineClientRegion(String partition) {
+        return switch (partition) {
+            case "aws" -> determineClientRegion();
+            case "aws-us-gov" -> Region.US_GOV_WEST_1;
+            case "aws-cn" -> Region.CN_NORTH_1;
+            default -> throw new IllegalArgumentException("Unknown AWS partition: " + partition);
+        };
     }
 
     private static Region determineClientRegion() {
@@ -221,7 +231,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                 .tokenCode(mfaToken)
                 .durationSeconds(this.getStsTokenDuration());
 
-        StsClient stsClient = getStsClient(initialCredentials);
+        String partition = extractPartition(iamRoleArn);
+        StsClient stsClient = getStsClient(initialCredentials, partition);
         AssumeRoleResponse assumeResult = stsClient.assumeRole(assumeRequest.build());
 
         return AwsSessionCredentials.create(
@@ -289,9 +300,9 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
         return accessKey + ":" + iamRoleArn;
     }
 
-    /*package*/ static StsClient buildStsClient(AwsCredentialsProvider provider) {
+    /*package*/ static StsClient buildStsClient(AwsCredentialsProvider provider, String partition) {
         // Check for available region from the SDK, otherwise specify default
-        Region clientRegion = determineClientRegion();
+        Region clientRegion = determineClientRegion(partition);
 
         StsClientBuilder builder = StsClient.builder().region(clientRegion).httpClient(getHttpClient());
 
@@ -315,11 +326,12 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
      * Provides the {@link StsClient} for a given {@link AwsCredentials}
      *
      * @param awsCredentials
+     * @param partition
      * @return {@link StsClient}
      */
-    private static StsClient getStsClient(AwsCredentials awsCredentials) {
+    private static StsClient getStsClient(AwsCredentials awsCredentials, String partition) {
         SdkHttpClient clientConfiguration = getHttpClient();
-        Region clientRegion = determineClientRegion();
+        Region clientRegion = determineClientRegion(partition);
         return StsClient.builder()
                 .region(clientRegion)
                 .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
@@ -352,6 +364,19 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
             builder.proxyConfiguration(proxyConfiguration.build());
         }
         return builder.build();
+    }
+
+    /**
+     * Extract the AWS partition name from a role arn
+     * @param iamRoleArn The aws role arn
+     * @return The partition as string
+     */
+    /*package*/ static String extractPartition(String iamRoleArn) {
+        String[] parts = iamRoleArn.split(":");
+        if (parts.length > 2) {
+            return parts[1];
+        }
+        throw new IllegalArgumentException("Unable to extract partition from role arn: " + iamRoleArn);
     }
 
     @Extension
@@ -390,6 +415,9 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
             AwsCredentials awsCredentials = AwsBasicCredentials.create(
                     accessKey, Secret.fromString(secretKey).getPlainText());
 
+            String partition = StringUtils.isBlank(iamRoleArn) ? "aws" : extractPartition(iamRoleArn);
+            Region region = determineClientRegion(partition);
+
             // If iamRoleArn is specified, swap out the credentials.
             if (!StringUtils.isBlank(iamRoleArn)) {
 
@@ -405,7 +433,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                 }
 
                 try {
-                    StsClient stsClient = getStsClient(awsCredentials);
+                    StsClient stsClient = getStsClient(awsCredentials, partition);
                     AssumeRoleResponse assumeResult = stsClient.assumeRole(assumeRequest.build());
 
                     awsCredentials = AwsSessionCredentials.create(
@@ -421,8 +449,6 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                             + " Check the Jenkins log for more details");
                 }
             }
-
-            Region region = determineClientRegion();
 
             Ec2Client ec2 = Ec2Client.builder()
                     .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
