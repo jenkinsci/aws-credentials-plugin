@@ -67,7 +67,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     private final String secretKeyVariable;
 
     @NonNull
-    private final String sessionTokenVariable;
+    private String sessionTokenVariable = DEFAULT_SESSION_TOKEN_VARIABLE_NAME;
 
     private String roleArn;
     private String roleSessionName;
@@ -77,20 +77,16 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
      *
      * @param accessKeyVariable if {@code null}, {@value DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME} will be used.
      * @param secretKeyVariable if {@code null}, {@value DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME} will be used.
-     * @param sessionTokenVariable if {@code null}, {@value DEFAULT_SESSION_TOKEN_VARIABLE_NAME} will be used.
      * @param credentialsId identifier which should be referenced when accessing the credentials from a job/pipeline.
      */
     @DataBoundConstructor
     public AmazonWebServicesCredentialsBinding(
             @Nullable String accessKeyVariable,
             @Nullable String secretKeyVariable,
-            @Nullable String sessionTokenVariable,
             String credentialsId) {
         super(credentialsId);
         this.accessKeyVariable = StringUtils.defaultIfBlank(accessKeyVariable, DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME);
         this.secretKeyVariable = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME);
-        this.sessionTokenVariable =
-                StringUtils.defaultIfBlank(sessionTokenVariable, DEFAULT_SESSION_TOKEN_VARIABLE_NAME);
     }
 
     @NonNull
@@ -106,6 +102,11 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @NonNull
     public String getSessionTokenVariable() {
         return sessionTokenVariable;
+    }
+
+    @DataBoundSetter
+    public void setSessionTokenVariable(@Nullable String sessionTokenVariable) {
+        this.sessionTokenVariable = StringUtils.defaultIfBlank(sessionTokenVariable, DEFAULT_SESSION_TOKEN_VARIABLE_NAME);
     }
 
     @Nullable

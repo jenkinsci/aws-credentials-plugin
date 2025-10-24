@@ -49,7 +49,7 @@ public class AWSCredentialsBindingIntegrationTest {
         // Configure credential binding
         List<MultiBinding<? extends Credentials>> binders = new ArrayList<>();
         binders.add(new AmazonWebServicesCredentialsBinding(
-                "AWS_ACCESS_KEY", "AWS_SECRET_KEY", "AWS_SESSION_TOKEN", CREDENTIAL_ID));
+                "AWS_ACCESS_KEY", "AWS_SECRET_KEY", CREDENTIAL_ID));
 
         SecretBuildWrapper wrapper = new SecretBuildWrapper(binders);
         project.getBuildWrappersList().add(wrapper);
@@ -100,8 +100,7 @@ public class AWSCredentialsBindingIntegrationTest {
                 + "        $class: 'AmazonWebServicesCredentialsBinding',\n"
                 + "        credentialsId: '"
                 + CREDENTIAL_ID + "',\n" + "        accessKeyVariable: 'AWS_ACCESS_KEY',\n"
-                + "        secretKeyVariable: 'AWS_SECRET_KEY',\n"
-                + "        sessionTokenVariable: 'AWS_SESSION_TOKEN'\n"
+                + "        secretKeyVariable: 'AWS_SECRET_KEY'\n"
                 + "    ]\n"
                 + "]) {\n"
                 + "    // We can't use 'sh' or 'echo' in test environment\n"
@@ -192,8 +191,10 @@ public class AWSCredentialsBindingIntegrationTest {
 
         // Configure credential binding with custom variable names
         List<MultiBinding<? extends Credentials>> binders = new ArrayList<>();
-        binders.add(new AmazonWebServicesCredentialsBinding(
-                "CUSTOM_AWS_ACCESS_KEY", "CUSTOM_AWS_SECRET_KEY", "CUSTOM_AWS_TOKEN", CREDENTIAL_ID));
+        AmazonWebServicesCredentialsBinding binding = new AmazonWebServicesCredentialsBinding(
+                "CUSTOM_AWS_ACCESS_KEY", "CUSTOM_AWS_SECRET_KEY", CREDENTIAL_ID);
+        binding.setSessionTokenVariable("CUSTOM_AWS_TOKEN");
+        binders.add(binding);
 
         SecretBuildWrapper wrapper = new SecretBuildWrapper(binders);
         project.getBuildWrappersList().add(wrapper);

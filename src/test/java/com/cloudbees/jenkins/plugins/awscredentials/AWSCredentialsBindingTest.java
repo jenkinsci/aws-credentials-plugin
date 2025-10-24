@@ -18,7 +18,8 @@ public class AWSCredentialsBindingTest {
     @Test
     public void testCustomSessionTokenVariable() {
         AmazonWebServicesCredentialsBinding binding = new AmazonWebServicesCredentialsBinding(
-                "CUSTOM_ACCESS_KEY", "CUSTOM_SECRET_KEY", "CUSTOM_SESSION_TOKEN", "credentials-id");
+                "CUSTOM_ACCESS_KEY", "CUSTOM_SECRET_KEY", "credentials-id");
+        binding.setSessionTokenVariable("CUSTOM_SESSION_TOKEN");
 
         assertEquals("CUSTOM_ACCESS_KEY", binding.getAccessKeyVariable());
         assertEquals("CUSTOM_SECRET_KEY", binding.getSecretKeyVariable());
@@ -33,7 +34,7 @@ public class AWSCredentialsBindingTest {
     @Test
     public void testDefaultValues() {
         AmazonWebServicesCredentialsBinding binding =
-                new AmazonWebServicesCredentialsBinding(null, null, null, "credentials-id");
+                new AmazonWebServicesCredentialsBinding(null, null, "credentials-id");
 
         assertEquals("AWS_ACCESS_KEY_ID", binding.getAccessKeyVariable());
         assertEquals("AWS_SECRET_ACCESS_KEY", binding.getSecretKeyVariable());
@@ -43,7 +44,8 @@ public class AWSCredentialsBindingTest {
     @Test
     public void testRoleProperties() {
         AmazonWebServicesCredentialsBinding binding = new AmazonWebServicesCredentialsBinding(
-                "CUSTOM_ACCESS_KEY", "CUSTOM_SECRET_KEY", "CUSTOM_SESSION_TOKEN", "credentials-id");
+                "CUSTOM_ACCESS_KEY", "CUSTOM_SECRET_KEY", "credentials-id");
+        binding.setSessionTokenVariable("CUSTOM_SESSION_TOKEN");
 
         assertNull(binding.getRoleArn());
         assertNull(binding.getRoleSessionName());
@@ -65,7 +67,7 @@ public class AWSCredentialsBindingTest {
     @Test
     public void testType() {
         AmazonWebServicesCredentialsBinding binding =
-                new AmazonWebServicesCredentialsBinding(null, null, null, "credentials-id");
+                new AmazonWebServicesCredentialsBinding(null, null, "credentials-id");
 
         assertEquals(AmazonWebServicesCredentials.class, binding.type());
     }
@@ -73,7 +75,8 @@ public class AWSCredentialsBindingTest {
     @Test
     public void testVariables() {
         AmazonWebServicesCredentialsBinding binding = new AmazonWebServicesCredentialsBinding(
-                "AWS_ACCESS_KEY_ID_VAR", "AWS_SECRET_KEY_VAR", "AWS_SESSION_TOKEN_VAR", "credentials-id");
+                "AWS_ACCESS_KEY_ID_VAR", "AWS_SECRET_KEY_VAR", "credentials-id");
+        binding.setSessionTokenVariable("AWS_SESSION_TOKEN_VAR");
 
         Set<String> variables = binding.variables();
         assertEquals(3, variables.size());
@@ -87,7 +90,7 @@ public class AWSCredentialsBindingTest {
         // This method is private and would need integration tests or refactoring to be properly tested
         // For now, we'll just check if the assumeRole setter methods work correctly
         AmazonWebServicesCredentialsBinding binding =
-                new AmazonWebServicesCredentialsBinding(null, null, null, "credentials-id");
+                new AmazonWebServicesCredentialsBinding(null, null, "credentials-id");
 
         binding.setRoleArn("arn:aws:iam::123456789012:role/role-name");
         binding.setRoleSessionName("customSession");
