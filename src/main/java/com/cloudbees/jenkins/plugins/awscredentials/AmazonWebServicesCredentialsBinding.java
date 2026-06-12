@@ -152,7 +152,8 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     }
 
     private AwsCredentialsProvider assumeRoleProvider(AwsCredentialsProvider baseProvider) {
-        StsClient stsClient = AWSCredentialsImpl.buildStsClient(baseProvider);
+        String partition = AWSCredentialsImpl.extractPartition(this.roleArn);
+        StsClient stsClient = AWSCredentialsImpl.buildStsClient(baseProvider, partition);
 
         String roleSessionName = StringUtils.defaultIfBlank(this.roleSessionName, "Jenkins");
 
