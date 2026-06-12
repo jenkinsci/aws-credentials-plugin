@@ -27,7 +27,6 @@ package com.cloudbees.jenkins.plugins.awscredentials;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
@@ -42,6 +41,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
+import org.jenkinsci.plugins.variant.OptionalExtension;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -175,7 +175,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     }
 
     @Symbol("aws")
-    @Extension
+    @OptionalExtension(requirePlugins = "credentials-binding")
     public static class DescriptorImpl extends BindingDescriptor<AmazonWebServicesCredentials> {
 
         @Override
