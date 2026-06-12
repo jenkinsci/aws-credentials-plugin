@@ -46,7 +46,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -164,14 +163,15 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
     }
 
     public boolean requiresToken() {
-        return !StringUtils.isBlank(iamMfaSerialNumber);
+        return iamMfaSerialNumber != null && !iamMfaSerialNumber.isBlank();
     }
 
     @Override
     public AwsCredentials resolveCredentials() {
 
-        if (StringUtils.isBlank(iamRoleArn)) {
-            if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText())) {
+        if (iamRoleArn == null || iamRoleArn.isBlank()) {
+            if ((accessKey == null || accessKey.isBlank())
+                    && secretKey.getPlainText().isBlank()) {
                 // AWS SDK v2 does not allow blank accessKey and secretKey
                 return null;
             } else {
@@ -180,7 +180,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
         } else {
             AwsCredentialsProvider baseProvider;
             // Handle the case of delegation to instance profile
-            if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey.getPlainText())) {
+            if ((accessKey == null || accessKey.isBlank())
+                    && secretKey.getPlainText().isBlank()) {
                 baseProvider = null;
             } else {
                 baseProvider = StaticCredentialsProvider.create(
@@ -283,7 +284,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
     @Override
     public String getDisplayName() {
-        if (StringUtils.isBlank(iamRoleArn)) {
+        if (iamRoleArn == null || iamRoleArn.isBlank()) {
             return accessKey;
         }
         return accessKey + ":" + iamRoleArn;
@@ -377,13 +378,13 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                 // for security reasons, do not perform any check if the user is not an admin
                 return FormValidation.ok();
             }
-            if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(secretKey)) {
+            if ((accessKey == null || accessKey.isBlank()) && (secretKey == null || secretKey.isBlank())) {
                 return FormValidation.ok();
             }
-            if (StringUtils.isBlank(accessKey)) {
+            if (accessKey == null || accessKey.isBlank()) {
                 return FormValidation.error(Messages.AWSCredentialsImpl_SpecifyAccessKeyId());
             }
-            if (StringUtils.isBlank(secretKey)) {
+            if (secretKey == null || secretKey.isBlank()) {
                 return FormValidation.error(Messages.AWSCredentialsImpl_SpecifySecretAccessKey());
             }
 
@@ -391,13 +392,13 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                     accessKey, Secret.fromString(secretKey).getPlainText());
 
             // If iamRoleArn is specified, swap out the credentials.
-            if (!StringUtils.isBlank(iamRoleArn)) {
+            if (iamRoleArn != null && !iamRoleArn.isBlank()) {
 
                 AssumeRoleRequest.Builder assumeRequest =
                         createAssumeRoleRequest(iamRoleArn, iamExternalId).durationSeconds(stsTokenDuration);
 
-                if (!StringUtils.isBlank(iamMfaSerialNumber)) {
-                    if (StringUtils.isBlank(iamMfaToken)) {
+                if (iamMfaSerialNumber != null && !iamMfaSerialNumber.isBlank()) {
+                    if (iamMfaToken == null || iamMfaToken.isBlank()) {
                         return FormValidation.error(Messages.AWSCredentialsImpl_SpecifyMFAToken());
                     }
                     assumeRequest =

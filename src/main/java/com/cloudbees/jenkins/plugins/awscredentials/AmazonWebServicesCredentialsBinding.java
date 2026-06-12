@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.credentialsbinding.BindingDescriptor;
 import org.jenkinsci.plugins.credentialsbinding.MultiBinding;
@@ -80,8 +79,12 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     public AmazonWebServicesCredentialsBinding(
             @Nullable String accessKeyVariable, @Nullable String secretKeyVariable, String credentialsId) {
         super(credentialsId);
-        this.accessKeyVariable = StringUtils.defaultIfBlank(accessKeyVariable, DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME);
-        this.secretKeyVariable = StringUtils.defaultIfBlank(secretKeyVariable, DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME);
+        this.accessKeyVariable = (accessKeyVariable == null || accessKeyVariable.isBlank())
+                ? DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME
+                : accessKeyVariable;
+        this.secretKeyVariable = (secretKeyVariable == null || secretKeyVariable.isBlank())
+                ? DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME
+                : secretKeyVariable;
     }
 
     @NonNull
@@ -132,7 +135,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     public MultiEnvironment bind(@NonNull Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
             throws IOException, InterruptedException {
         AwsCredentialsProvider provider = getCredentials(build);
-        if (!StringUtils.isEmpty(this.roleArn)) {
+        if (this.roleArn != null && !this.roleArn.isEmpty()) {
             provider = this.assumeRoleProvider(provider);
         }
 
@@ -154,7 +157,8 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     private AwsCredentialsProvider assumeRoleProvider(AwsCredentialsProvider baseProvider) {
         StsClient stsClient = AWSCredentialsImpl.buildStsClient(baseProvider);
 
-        String roleSessionName = StringUtils.defaultIfBlank(this.roleSessionName, "Jenkins");
+        String roleSessionName =
+                (this.roleSessionName == null || this.roleSessionName.isBlank()) ? "Jenkins" : this.roleSessionName;
 
         AssumeRoleRequest.Builder assumeRoleRequest =
                 AssumeRoleRequest.builder().roleArn(this.roleArn).roleSessionName(roleSessionName);

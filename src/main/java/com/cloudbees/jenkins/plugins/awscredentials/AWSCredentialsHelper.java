@@ -12,7 +12,6 @@ import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import java.util.Collections;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
@@ -23,7 +22,7 @@ public class AWSCredentialsHelper {
 
     @CheckForNull
     public static AmazonWebServicesCredentials getCredentials(@Nullable String credentialsId, ItemGroup context) {
-        if (StringUtils.isBlank(credentialsId)) {
+        if (credentialsId == null || credentialsId.isBlank()) {
             return null;
         }
         return (AmazonWebServicesCredentials) CredentialsMatchers.firstOrNull(
