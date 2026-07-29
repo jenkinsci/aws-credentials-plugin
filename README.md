@@ -5,6 +5,25 @@ AWS Credentials Plugin
 - Store Amazon IAM access keys (AWSAccessKeyId and AWSSecretKey) within the Jenkins Credentials API.
 - Also supports IAM Roles and IAM MFA Token.
 
+# Usage
+
+## Rotating AWS Credentials
+
+AWS access keys should be rotated regularly for security best practices.
+
+To rotate credentials stored in Jenkins:
+
+1. Create a new access key in AWS IAM
+2. In Jenkins, open **Manage Jenkins → Credentials**
+3. Locate the existing AWS credential
+4. Click **Update**
+5. Replace the Access Key ID and Secret Access Key
+6. Save the credential
+7. Verify jobs or pipelines using the credential
+
+Pipelines referencing the credential ID do not need to be modified
+after rotation.
+
 # Sample Pipeline Usage
 
 **AWS Credential, this example will automatically setup environment variables AWS_ACCESS_KEY_ID & AWS_SECRET_ACCESS_KEY**
