@@ -77,6 +77,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
     public static final int STS_CREDENTIALS_DURATION_SECONDS = 3600;
 
+    private static final String DEFAULT_ROLE_SESSION_NAME = "Jenkins";
+
     private final String accessKey;
 
     private final Secret secretKey;
@@ -168,7 +170,10 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
     @Override
     public AwsCredentials resolveCredentials() {
+        return resolveCredentialsWithRoleSessionName(DEFAULT_ROLE_SESSION_NAME);
+    }
 
+    /*package*/ AwsCredentials resolveCredentialsWithRoleSessionName(String roleSessionName) {
         if (iamRoleArn == null || iamRoleArn.isBlank()) {
             if ((accessKey == null || accessKey.isBlank())
                     && secretKey.getPlainText().isBlank()) {
@@ -190,8 +195,9 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
             StsClient client = buildStsClient(baseProvider);
 
-            AssumeRoleRequest.Builder assumeRequest =
-                    createAssumeRoleRequest(iamRoleArn, iamExternalId).durationSeconds(this.getStsTokenDuration());
+            AssumeRoleRequest.Builder assumeRequest = createAssumeRoleRequest(
+                            iamRoleArn, iamExternalId, roleSessionName)
+                    .durationSeconds(this.getStsTokenDuration());
 
             AssumeRoleResponse assumeResult = client.assumeRole(assumeRequest.build());
 
@@ -303,13 +309,18 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
         return builder.build();
     }
 
-    private static AssumeRoleRequest.Builder createAssumeRoleRequest(String iamRoleArn, String iamExternalId) {
+    /*package*/ static AssumeRoleRequest.Builder createAssumeRoleRequest(
+            String iamRoleArn, String iamExternalId, String roleSessionName) {
         AssumeRoleRequest.Builder retval =
-                AssumeRoleRequest.builder().roleArn(iamRoleArn).roleSessionName("Jenkins");
+                AssumeRoleRequest.builder().roleArn(iamRoleArn).roleSessionName(roleSessionName);
         if (iamExternalId != null && !iamExternalId.isEmpty()) {
             return retval.externalId(iamExternalId);
         }
         return retval;
+    }
+
+    /*package*/ static AssumeRoleRequest.Builder createAssumeRoleRequest(String iamRoleArn, String iamExternalId) {
+        return createAssumeRoleRequest(iamRoleArn, iamExternalId, DEFAULT_ROLE_SESSION_NAME);
     }
 
     /**

@@ -139,7 +139,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
             provider = this.assumeRoleProvider(provider);
         }
 
-        AwsCredentials credentials = provider.resolveCredentials();
+        AwsCredentials credentials = resolveCredentials(provider);
 
         Map<String, String> m = new HashMap<String, String>();
         if (credentials != null) {
@@ -152,6 +152,20 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
             m.put(SESSION_TOKEN_VARIABLE_NAME, ((AwsSessionCredentials) credentials).sessionToken());
         }
         return new MultiEnvironment(m);
+    }
+
+    /*package*/ AwsCredentials resolveCredentials(AwsCredentialsProvider provider) {
+        if ((this.roleArn == null || this.roleArn.isEmpty())
+                && this.roleSessionName != null
+                && !this.roleSessionName.isBlank()
+                && provider instanceof AWSCredentialsImpl) {
+            AWSCredentialsImpl credentials = (AWSCredentialsImpl) provider;
+            String credentialRoleArn = credentials.getIamRoleArn();
+            if (credentialRoleArn != null && !credentialRoleArn.isBlank()) {
+                return credentials.resolveCredentialsWithRoleSessionName(this.roleSessionName);
+            }
+        }
+        return provider.resolveCredentials();
     }
 
     private AwsCredentialsProvider assumeRoleProvider(AwsCredentialsProvider baseProvider) {
