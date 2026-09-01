@@ -57,13 +57,15 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
     public static final String DEFAULT_ACCESS_KEY_ID_VARIABLE_NAME = "AWS_ACCESS_KEY_ID";
     private static final String DEFAULT_SECRET_ACCESS_KEY_VARIABLE_NAME = "AWS_SECRET_ACCESS_KEY";
-    private static final String SESSION_TOKEN_VARIABLE_NAME = "AWS_SESSION_TOKEN";
+    private static final String DEFAULT_SESSION_TOKEN_VARIABLE_NAME = "AWS_SESSION_TOKEN";
 
     @NonNull
     private final String accessKeyVariable;
 
     @NonNull
     private final String secretKeyVariable;
+
+    private String sessionTokenVariable;
 
     private String roleArn;
     private String roleSessionName;
@@ -95,6 +97,18 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
     @NonNull
     public String getSecretKeyVariable() {
         return secretKeyVariable;
+    }
+
+    @NonNull
+    public String getSessionTokenVariable() {
+        return (sessionTokenVariable == null || sessionTokenVariable.isBlank())
+                ? DEFAULT_SESSION_TOKEN_VARIABLE_NAME
+                : sessionTokenVariable;
+    }
+
+    @DataBoundSetter
+    public void setSessionTokenVariable(String sessionTokenVariable) {
+        this.sessionTokenVariable = sessionTokenVariable;
     }
 
     @Nullable
@@ -149,7 +163,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
         // If role has been assumed, STS requires AWS_SESSION_TOKEN variable set too.
         if (credentials instanceof AwsSessionCredentials) {
-            m.put(SESSION_TOKEN_VARIABLE_NAME, ((AwsSessionCredentials) credentials).sessionToken());
+            m.put(getSessionTokenVariable(), ((AwsSessionCredentials) credentials).sessionToken());
         }
         return new MultiEnvironment(m);
     }
@@ -175,7 +189,7 @@ public class AmazonWebServicesCredentialsBinding extends MultiBinding<AmazonWebS
 
     @Override
     public Set<String> variables() {
-        return new HashSet<String>(Arrays.asList(accessKeyVariable, secretKeyVariable, SESSION_TOKEN_VARIABLE_NAME));
+        return new HashSet<String>(Arrays.asList(accessKeyVariable, secretKeyVariable, getSessionTokenVariable()));
     }
 
     @Symbol("aws")
