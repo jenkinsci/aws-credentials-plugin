@@ -68,6 +68,7 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.StsClientBuilder;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
 
