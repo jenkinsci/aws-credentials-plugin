@@ -59,6 +59,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.PartitionMetadata;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
@@ -226,8 +227,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
             return region;
         }
         // IAM role ARNs have no region; retain the configured region only within the role's partition.
-        return region.metadata().partition().id()
-                        .equals(partitionDefault.metadata().partition().id())
+        return PartitionMetadata.of(region).id().equals(PartitionMetadata.of(partitionDefault).id())
                 ? region
                 : partitionDefault;
     }
