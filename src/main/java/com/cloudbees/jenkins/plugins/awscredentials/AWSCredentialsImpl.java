@@ -59,6 +59,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.PartitionMetadata;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
@@ -188,7 +189,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                         AwsBasicCredentials.create(accessKey, secretKey.getPlainText()));
             }
 
-            StsClient client = buildStsClient(baseProvider);
+            StsClient client = buildStsClient(baseProvider, iamRoleArn);
 
             AssumeRoleRequest.Builder assumeRequest =
                     createAssumeRoleRequest(iamRoleArn, iamExternalId).durationSeconds(this.getStsTokenDuration());
@@ -213,6 +214,24 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
         }
     }
 
+    private static Region determineStsRegion(String iamRoleArn) {
+        Region region = determineClientRegion();
+        Region partitionDefault;
+        if (iamRoleArn != null && iamRoleArn.startsWith("arn:aws-cn:")) {
+            partitionDefault = Region.CN_NORTH_1;
+        } else if (iamRoleArn != null && iamRoleArn.startsWith("arn:aws-us-gov:")) {
+            partitionDefault = Region.US_GOV_WEST_1;
+        } else if (iamRoleArn != null && iamRoleArn.startsWith("arn:aws:")) {
+            partitionDefault = Region.US_EAST_1;
+        } else {
+            return region;
+        }
+        // IAM role ARNs have no region; retain the configured region only within the role's partition.
+        return PartitionMetadata.of(region).id().equals(PartitionMetadata.of(partitionDefault).id())
+                ? region
+                : partitionDefault;
+    }
+
     @Override
     public AwsCredentials resolveCredentials(String mfaToken) {
         AwsCredentials initialCredentials = AwsBasicCredentials.create(accessKey, secretKey.getPlainText());
@@ -222,7 +241,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                 .tokenCode(mfaToken)
                 .durationSeconds(this.getStsTokenDuration());
 
-        StsClient stsClient = getStsClient(initialCredentials);
+        StsClient stsClient = getStsClient(initialCredentials, iamRoleArn);
         AssumeRoleResponse assumeResult = stsClient.assumeRole(assumeRequest.build());
 
         return AwsSessionCredentials.create(
@@ -291,8 +310,11 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
     }
 
     /*package*/ static StsClient buildStsClient(AwsCredentialsProvider provider) {
-        // Check for available region from the SDK, otherwise specify default
-        Region clientRegion = determineClientRegion();
+        return buildStsClient(provider, null);
+    }
+
+    /*package*/ static StsClient buildStsClient(AwsCredentialsProvider provider, String iamRoleArn) {
+        Region clientRegion = determineStsRegion(iamRoleArn);
 
         StsClientBuilder builder = StsClient.builder().region(clientRegion).httpClient(getHttpClient());
 
@@ -318,14 +340,8 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
      * @param awsCredentials
      * @return {@link StsClient}
      */
-    private static StsClient getStsClient(AwsCredentials awsCredentials) {
-        SdkHttpClient clientConfiguration = getHttpClient();
-        Region clientRegion = determineClientRegion();
-        return StsClient.builder()
-                .region(clientRegion)
-                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
-                .httpClient(clientConfiguration)
-                .build();
+    private static StsClient getStsClient(AwsCredentials awsCredentials, String iamRoleArn) {
+        return buildStsClient(StaticCredentialsProvider.create(awsCredentials), iamRoleArn);
     }
 
     /**
@@ -406,7 +422,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                 }
 
                 try {
-                    StsClient stsClient = getStsClient(awsCredentials);
+                    StsClient stsClient = getStsClient(awsCredentials, iamRoleArn);
                     AssumeRoleResponse assumeResult = stsClient.assumeRole(assumeRequest.build());
 
                     awsCredentials = AwsSessionCredentials.create(
@@ -423,7 +439,7 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
                 }
             }
 
-            Region region = determineClientRegion();
+            Region region = determineStsRegion(iamRoleArn);
 
             Ec2Client ec2 = Ec2Client.builder()
                     .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))

@@ -4,6 +4,7 @@ AWS Credentials Plugin
 - Allows storing Amazon IAM credentials within the Jenkins Credentials API.
 - Store Amazon IAM access keys (AWSAccessKeyId and AWSSecretKey) within the Jenkins Credentials API.
 - Also supports IAM Roles and IAM MFA Token.
+- When assuming a role, the role ARN selects the AWS partition (commercial, China, or GovCloud) for STS. The SDK-configured region is used when it belongs to that partition; otherwise the plugin uses `us-east-1`, `cn-north-1`, or `us-gov-west-1`, respectively.
 
 # Sample Pipeline Usage
 
