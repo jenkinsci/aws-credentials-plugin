@@ -207,8 +207,14 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
     private static Region determineClientRegion(String partition) {
         return switch (partition) {
             case "aws" -> determineClientRegion();
-            case "aws-us-gov" -> Region.US_GOV_WEST_1;
-            case "aws-cn" -> Region.CN_NORTH_1;
+            case "aws-us-gov" -> {
+                Region configuredRegion = determineClientRegion();
+                yield configuredRegion.id().startsWith("us-gov-") ? configuredRegion : Region.US_GOV_WEST_1;
+            }
+            case "aws-cn" -> {
+                Region configuredRegion = determineClientRegion();
+                yield configuredRegion.id().startsWith("cn-") ? configuredRegion : Region.CN_NORTH_1;
+            }
             default -> throw new IllegalArgumentException("Unknown AWS partition: " + partition);
         };
     }
