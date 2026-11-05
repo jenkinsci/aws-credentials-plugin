@@ -423,8 +423,14 @@ public class AWSCredentialsImpl extends BaseAmazonWebServicesCredentials {
             AwsCredentials awsCredentials = AwsBasicCredentials.create(
                     accessKey, Secret.fromString(secretKey).getPlainText());
 
-            String partition = StringUtils.isBlank(iamRoleArn) ? "aws" : extractPartition(iamRoleArn);
-            Region region = determineClientRegion(partition);
+             String partition;
+             Region region;
+             try {
+                 partition = StringUtils.isBlank(iamRoleArn) ? "aws" : extractPartition(iamRoleArn);
+                 region = determineClientRegion(partition);
+             } catch (IllegalArgumentException e) {
+                 return FormValidation.error(e.getMessage());
+             }
 
             // If iamRoleArn is specified, swap out the credentials.
             if (iamRoleArn != null && !iamRoleArn.isBlank()) {
